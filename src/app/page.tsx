@@ -29,7 +29,11 @@ export default function Home() {
       </div>
 
       {/* 명예의 전당 박스 */}
-      <div className={styles.hallOfFame}>명예의 전당</div>
+      <div className={styles.hallOfFame}>
+        명예의 전당
+        <br />
+        sample web
+      </div>
 
       {/* 게시물 카드 */}
       <div className={styles.grid}>
