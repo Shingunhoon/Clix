@@ -23,14 +23,6 @@
   background-color: #f8f9fa;
 }
 
-.logo {
-  font-size: 25px;
-  font-weight: bold;
-  margin-left: 10px;
-  background-color: #050505;
-  border-radius: 4px;
-}
-
 .nav {
   display: flex;
   gap: 20px;
@@ -97,4 +89,25 @@
   align-items: center;
   justify-content: center;
   color: black;
+}
+.logoImage {
+  height: 70px; /* 2배로 증가 */
+  width: auto;
+  display: block;
+}
+
+.authBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.email {
+  font-size: 14px;
+  color: black;
+  background-color: white;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 20px;
 }
