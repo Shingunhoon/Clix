@@ -1,21 +1,44 @@
+//\app\page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth, db } from '@/firebase/firebase'
-import { doc, getDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+} from 'firebase/firestore'
 import Head from 'next/head'
 import Link from 'next/link'
-import styles from '../styles/Home.module.css'
-import { toast } from 'react-hot-toast' // ✅ 추가
+import styles from './page.module.css'
+import { toast } from 'react-hot-toast'
+import FloatingButton from './components/FloatingButton'
+
+interface Post {
+  id: string
+  title: string
+  content: string
+  author: {
+    uid: string
+    name: string
+  }
+  createdAt: {
+    toDate: () => Date
+  }
+}
 
 export default function Home() {
   const router = useRouter()
   const [userName, setUserName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [posts, setPosts] = useState<Post[]>([])
 
-  // 🔐 로그인 상태 감지 + Firestore에 사용자 정보 있는지 확인
+  // 로그인 상태 확인
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.email) {
@@ -26,8 +49,7 @@ export default function Home() {
           const data = userSnap.data()
           setUserName(data.name || '사용자')
         } else {
-          // ❌ Firestore에 사용자 정보 없음 → 회원가입 미완료
-          toast.error('회원가입을 먼저 완료해주세요.') // ✅ 변경
+          toast.error('회원가입을 먼저 완료해주세요.')
           await signOut(auth)
           router.push('/signup')
         }
@@ -40,7 +62,74 @@ export default function Home() {
     return () => unsubscribe()
   }, [router])
 
-  if (loading) return <div className={styles.container}>로딩 중...</div>
+  // 게시물 불러오기
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'))
+        const querySnapshot = await getDocs(q)
+        const postsData = await Promise.all(
+          querySnapshot.docs.map(async (docSnapshot) => {
+            const postData = docSnapshot.data() as any
+
+            // author 정보가 없는 경우 처리
+            if (!postData.author) {
+              return {
+                id: docSnapshot.id,
+                ...postData,
+                author: {
+                  name: '익명',
+                  email: 'unknown',
+                },
+              } as Post
+            }
+
+            // author.email 정보가 없는 경우 처리
+            if (!postData.author.email) {
+              return {
+                id: docSnapshot.id,
+                ...postData,
+                author: {
+                  ...postData.author,
+                  name: postData.author.name || '익명',
+                  email: 'unknown',
+                },
+              } as Post
+            }
+
+            // 작성자 정보 가져오기
+            const authorRef = doc(db, 'users', postData.author.email)
+            const authorSnap = await getDoc(authorRef)
+            const authorData = authorSnap.data() as any
+
+            // 작성자 이름이 있는 경우에만 사용
+            const authorName =
+              authorData?.name || postData.author.name || '익명'
+
+            return {
+              id: docSnapshot.id,
+              ...postData,
+              author: {
+                ...postData.author,
+                name: authorName,
+              },
+            } as Post
+          })
+        )
+        setPosts(postsData)
+      } catch (error) {
+        console.error('Error fetching posts:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPosts()
+  }, [])
+
+  if (loading) {
+    return <div className={styles.container}>로딩 중...</div>
+  }
 
   return (
     <div className={styles.container}>
@@ -83,21 +172,34 @@ export default function Home() {
         />
       </div>
 
-      {/* 명예의 전당 */}
-      <div className={styles.hallOfFame}>
-        명예 전당
-        <br />
-        sample web
-      </div>
-
       {/* 게시물 카드 */}
       <div className={styles.grid}>
-        {Array.from({ length: 9 }).map((_, index) => (
-          <div key={index} className={styles.card}>
-            <p>게시물 {index + 1}</p>
-          </div>
-        ))}
+        {posts.length === 0 ? (
+          <p>등록된 게시물이 없습니다.</p>
+        ) : (
+          posts.map((post) => (
+            <Link
+              key={post.id}
+              href={`/post/${post.id}`}
+              className={styles.card}
+            >
+              <div className={styles.imagePlaceholder}>
+                <span>image</span>
+              </div>
+              <h3>{post.title}</h3>
+              <div className={styles.postMeta}>
+                <span className={styles.author}>{post.author.name}</span>
+                <span className={styles.date}>
+                  {post.createdAt.toDate().toLocaleDateString()}
+                </span>
+              </div>
+            </Link>
+          ))
+        )}
       </div>
+
+      {/* 고정 업로드 버튼 */}
+      <FloatingButton />
     </div>
   )
 }

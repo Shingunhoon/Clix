@@ -16,6 +16,98 @@
 }
 
 .header {
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+  }
+
+  .header,
+  .navItem,
+  .searchBox,
+  .card {
+    border: 3px solid black;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+  }
+
+  .login {
+    margin-right: 10px;
+    padding: 8px 16px;
+    background-color: #050505;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .searchContainer {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    color: black;
+  }
+
+  .searchBox {
+    width: 50%;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    height: 400px;
+    background-color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    text-decoration: none;
+    flex-direction: column;
+    padding: 20px;
+    transition: transform 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .logoImage {
+    height: 65px;
+    width: auto;
+    display: block;
+  }
+
+  .authBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .email {
+    font-size: 20px;
+    color: black;
+    background-color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
   display: flex;
   justify-content: space-between;
   align-items: center;
