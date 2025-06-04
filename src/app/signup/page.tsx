@@ -159,6 +159,7 @@ export default function Signup() {
         uid,
         email,
         name,
+        role: email === 'rjsgns01@naver.com' ? 'admin' : 'user',
         createdAt: serverTimestamp(),
       })
 

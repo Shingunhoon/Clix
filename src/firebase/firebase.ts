@@ -2,6 +2,7 @@
 import { initializeApp, getApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 // Firebase config (환경변수에서 가져옴)
 const firebaseConfig = {
@@ -20,6 +21,7 @@ console.log('Firebase API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY)
 // 필요한 Firebase 서비스 초기화
 const db = getFirestore(app)
 const auth = getAuth(app)
+const storage = getStorage(app)
 
-export { db, app, auth } // 다른 파일에서 사용할 수 있도록 내보내는 부분
+export { db, app, auth, storage } // 다른 파일에서 사용할 수 있도록 내보내는 부분
 export default app
