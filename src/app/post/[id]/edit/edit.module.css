@@ -333,3 +333,91 @@
   font-size: 1.2rem;
   color: #000;
 }
+
+.formGroup {
+  margin: 40px 0;
+  padding: 20px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.pptUploadSection {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.fileInfo span {
+  font-size: 0.9rem;
+  color: #000;
+  word-break: break-all;
+}
+
+.removeFileButton {
+  padding: 0.25rem 0.5rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+}
+
+.removeFileButton:hover {
+  background-color: #c82333;
+}
+
+.pptPreview {
+  margin-top: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pptPreview iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+  background-color: white;
+}
+
+.referenceUploadSection {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.referenceFiles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.referenceFile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.referenceFile span {
+  font-size: 0.9rem;
+  color: #000;
+  word-break: break-all;
+}

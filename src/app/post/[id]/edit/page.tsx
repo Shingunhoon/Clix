@@ -6,6 +6,12 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { auth, db, storage } from '@/firebase/firebase'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import styles from './edit.module.css'
+import dynamic from 'next/dynamic'
+
+const PptViewer = dynamic(() => import('@/app/components/PptViewer'), {
+  ssr: false,
+  loading: () => <div className={styles.loading}>PPT 로딩중...</div>,
+})
 
 interface TeamMember {
   name: string
@@ -31,6 +37,8 @@ interface Post {
   }
   likes: string[]
   views: number
+  pptFileUrl?: string
+  referenceFileUrls?: string[]
 }
 
 // 이미지 리사이징 함수
@@ -89,6 +97,11 @@ export default function EditPage() {
   const [detailImagePreviews, setDetailImagePreviews] = useState<string[]>([])
   const [youtubeLink, setYoutubeLink] = useState('')
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [pptFile, setPptFile] = useState<File | null>(null)
+  const [referenceFiles, setReferenceFiles] = useState<File[]>([])
+  const [existingReferenceFiles, setExistingReferenceFiles] = useState<
+    string[]
+  >([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -125,6 +138,8 @@ export default function EditPage() {
             : ''
         )
         setTeamMembers(postData.teamMembers || [])
+        setPptFile(null)
+        setExistingReferenceFiles(postData.referenceFileUrls || [])
       } catch (error) {
         console.error('게시물 불러오기 실패:', error)
         alert('게시물을 불러오는 중 오류가 발생했습니다.')
@@ -269,7 +284,9 @@ export default function EditPage() {
       }
 
       const postRef = doc(db, 'posts', id as string)
-      await updateDoc(postRef, {
+
+      // 업데이트할 데이터 객체 생성
+      const updateData: any = {
         title,
         content,
         thumbnailUrl,
@@ -278,7 +295,29 @@ export default function EditPage() {
         teamName,
         teamMembers: teamMembers.filter((member) => member.name.trim() !== ''),
         updatedAt: new Date(),
-      })
+      }
+
+      // PPT 파일이 새로 업로드된 경우
+      if (pptFile) {
+        updateData.pptFileUrl = await uploadPpt(pptFile)
+      }
+      // PPT 파일이 삭제된 경우 (post.pptFileUrl이 빈 문자열)
+      else if (post?.pptFileUrl === '') {
+        updateData.pptFileUrl = null
+      }
+      // 기존 PPT 파일이 유지되는 경우는 updateData에 포함하지 않음
+
+      // 참고자료 PDF 파일들 업로드
+      let referenceFileUrls = [...existingReferenceFiles]
+      for (const file of referenceFiles) {
+        const pdfRef = ref(storage, `referenceFiles/${Date.now()}_${file.name}`)
+        await uploadBytes(pdfRef, file)
+        const url = await getDownloadURL(pdfRef)
+        referenceFileUrls.push(url)
+      }
+      updateData.referenceFileUrls = referenceFileUrls
+
+      await updateDoc(postRef, updateData)
 
       alert('게시물이 수정되었습니다.')
       router.push(`/post/${id}`)
@@ -288,6 +327,44 @@ export default function EditPage() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const uploadPpt = async (file: File): Promise<string> => {
+    const storageRef = ref(storage, `posts/ppt/${Date.now()}_${file.name}`)
+    await uploadBytes(storageRef, file)
+    return await getDownloadURL(storageRef)
+  }
+
+  const handleReferenceFilesChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      // PDF 파일만 허용
+      const pdfFiles = files.filter((file) => file.type === 'application/pdf')
+      if (pdfFiles.length !== files.length) {
+        alert('PDF 파일만 업로드 가능합니다.')
+        return
+      }
+
+      // 파일 크기 체크 (각 파일 10MB)
+      if (pdfFiles.some((file) => file.size > 10 * 1024 * 1024)) {
+        alert('각 파일의 크기는 10MB를 초과할 수 없습니다.')
+        return
+      }
+
+      setReferenceFiles([...referenceFiles, ...pdfFiles])
+    }
+  }
+
+  const removeReferenceFile = (index: number) => {
+    setReferenceFiles(referenceFiles.filter((_, i) => i !== index))
+  }
+
+  const removeExistingReferenceFile = (index: number) => {
+    setExistingReferenceFiles(
+      existingReferenceFiles.filter((_, i) => i !== index)
+    )
   }
 
   if (loading) {
@@ -458,6 +535,123 @@ export default function EditPage() {
           <button onClick={addTeamMember} className={styles.addTeamMember}>
             팀원 추가
           </button>
+        </div>
+
+        <div className={styles.formGroup}>
+          <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
+            발표자료
+          </h2>
+          <div className={styles.pptUploadSection}>
+            <input
+              type="file"
+              id="pptFile"
+              accept=".ppt,.pptx"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  if (file.size > 10 * 1024 * 1024) {
+                    alert('파일 크기는 10MB를 초과할 수 없습니다.')
+                    return
+                  }
+                  setPptFile(file)
+                }
+              }}
+              className={styles.fileInput}
+            />
+            {pptFile && (
+              <div className={styles.fileInfo}>
+                <span>{pptFile.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setPptFile(null)}
+                  className={styles.removeFileButton}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+            {!pptFile && post?.pptFileUrl && (
+              <div className={styles.fileInfo}>
+                <span>기존 PPT 파일</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPptFile(null)
+                    setPost((prev) =>
+                      prev ? { ...prev, pptFileUrl: '' } : null
+                    )
+                  }}
+                  className={styles.removeFileButton}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
+          {(pptFile || post?.pptFileUrl) && (
+            <div className={styles.pptPreview}>
+              <PptViewer
+                file={pptFile}
+                fileUrl={post?.pptFileUrl}
+                height="500px"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className={styles.formGroup}>
+          <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
+            참고자료
+          </h2>
+          <div className={styles.referenceUploadSection}>
+            <input
+              type="file"
+              accept=".pdf"
+              multiple
+              onChange={handleReferenceFilesChange}
+              className={styles.fileInput}
+            />
+            {referenceFiles.length > 0 && (
+              <div className={styles.referenceFiles}>
+                {referenceFiles.map((file, index) => (
+                  <div key={index} className={styles.referenceFile}>
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeReferenceFile(index)}
+                      className={styles.removeFileButton}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {existingReferenceFiles.length > 0 && (
+              <div className={styles.referenceFiles}>
+                {existingReferenceFiles.map((fileUrl, index) => {
+                  const fileName =
+                    fileUrl.split('/').pop()?.split('_').slice(1).join('_') ||
+                    `참고자료_${index + 1}.pdf`
+                  return (
+                    <div
+                      key={`existing-${index}`}
+                      className={styles.referenceFile}
+                    >
+                      <span>{fileName}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeExistingReferenceFile(index)}
+                        className={styles.removeFileButton}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.buttonGroup}>

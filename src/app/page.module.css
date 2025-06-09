@@ -202,15 +202,19 @@
   display: none;
 }
 
-.card h3 {
-  font-size: 20px;
-  font-weight: bold;
+.cardContent h3 {
   margin: 0;
-  padding: 0;
-  color: #000;
-  white-space: nowrap;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 2.8em;
+  line-height: 1.4;
 }
 
 .cardInfo {
@@ -234,13 +238,21 @@
 
 .cardStats {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .createdAt {
-  color: #666;
-  font-size: 14px;
+  color: #999;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  margin-left: auto;
 }
 
 .likeButton,
@@ -329,37 +341,6 @@
   }
 }
 
-.floatingButton {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 60px;
-  background-color: #000000;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.floatingButton:hover {
-  background-color: #333333;
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.plusIcon {
-  width: 24px;
-  height: 24px;
-}
-
 /* Remove left banner and old banner styles */
 .leftBanner,
 .sidebar,
@@ -373,4 +354,32 @@
   color: #666;
   font-size: 1rem;
   margin-top: 1rem;
+}
+
+.loadMoreButton {
+  display: block;
+  margin: 2rem auto;
+  padding: 12px 24px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loadMoreButton:hover {
+  background-color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.loadMoreButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

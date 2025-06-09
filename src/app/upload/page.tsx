@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import styles from './upload.module.css'
+import PptViewer from '../components/PptViewer'
 
 interface TeamMember {
   name: string
@@ -34,6 +35,8 @@ interface Post {
   createdAt: any
   likes: string[]
   views: number
+  pptFileUrl?: string
+  referenceFileUrls?: string[]
 }
 
 // 이미지 리사이징 함수
@@ -94,6 +97,8 @@ export default function UploadPage() {
   ])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const [pptFile, setPptFile] = useState<File | null>(null)
+  const [referenceFiles, setReferenceFiles] = useState<File[]>([])
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -182,6 +187,32 @@ export default function UploadPage() {
     setDetailImagePreviews(detailImagePreviews.filter((_, i) => i !== index))
   }
 
+  const handleReferenceFilesChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      // PDF 파일만 허용
+      const pdfFiles = files.filter((file) => file.type === 'application/pdf')
+      if (pdfFiles.length !== files.length) {
+        alert('PDF 파일만 업로드 가능합니다.')
+        return
+      }
+
+      // 파일 크기 체크 (각 파일 10MB)
+      if (pdfFiles.some((file) => file.size > 10 * 1024 * 1024)) {
+        alert('각 파일의 크기는 10MB를 초과할 수 없습니다.')
+        return
+      }
+
+      setReferenceFiles([...referenceFiles, ...pdfFiles])
+    }
+  }
+
+  const removeReferenceFile = (index: number) => {
+    setReferenceFiles(referenceFiles.filter((_, i) => i !== index))
+  }
+
   const addTeamMember = () => {
     setTeamMembers([
       ...teamMembers,
@@ -212,7 +243,7 @@ export default function UploadPage() {
     }
 
     if (!title.trim() || !content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.')
+      alert('제목과 내용을 입력해주세요.')
       return
     }
 
@@ -231,6 +262,8 @@ export default function UploadPage() {
       const userData = userSnap.data()
       let thumbnailUrl = null
       let detailImageUrls: string[] = []
+      let pptFileUrl = ''
+      let referenceFileUrls: string[] = []
 
       // 썸네일 이미지 업로드
       if (thumbnailFile) {
@@ -253,6 +286,21 @@ export default function UploadPage() {
         detailImageUrls.push(url)
       }
 
+      // PPT 파일 업로드
+      if (pptFile) {
+        const pptRef = ref(storage, `pptFiles/${Date.now()}_${pptFile.name}`)
+        await uploadBytes(pptRef, pptFile)
+        pptFileUrl = await getDownloadURL(pptRef)
+      }
+
+      // 참고자료 PDF 파일들 업로드
+      for (const file of referenceFiles) {
+        const pdfRef = ref(storage, `referenceFiles/${Date.now()}_${file.name}`)
+        await uploadBytes(pdfRef, file)
+        const url = await getDownloadURL(pdfRef)
+        referenceFileUrls.push(url)
+      }
+
       // 유튜브 링크에서 비디오 ID 추출
       let youtubeVideoId = null
       if (youtubeLink) {
@@ -268,6 +316,8 @@ export default function UploadPage() {
         content,
         thumbnailUrl,
         detailImages: detailImageUrls,
+        pptFileUrl,
+        referenceFileUrls,
         youtubeVideoId,
         teamName,
         teamMembers: teamMembers.filter((member) => member.name.trim() !== ''),
@@ -451,6 +501,77 @@ export default function UploadPage() {
           <button onClick={addTeamMember} className={styles.addTeamMember}>
             팀원 추가
           </button>
+        </div>
+        <div className={styles.formGroup}>
+          <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
+            발표자료
+          </h2>
+          <div className={styles.pptUploadSection}>
+            <input
+              type="file"
+              id="pptFile"
+              accept=".ppt,.pptx"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  // 파일 크기 체크 (10MB)
+                  if (file.size > 10 * 1024 * 1024) {
+                    alert('파일 크기는 10MB를 초과할 수 없습니다.')
+                    return
+                  }
+                  setPptFile(file)
+                }
+              }}
+              className={styles.fileInput}
+            />
+            {pptFile && (
+              <div className={styles.fileInfo}>
+                <span>{pptFile.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setPptFile(null)}
+                  className={styles.removeFileButton}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
+          {pptFile && (
+            <div className={styles.pptPreview}>
+              <PptViewer file={pptFile} height="500px" />
+            </div>
+          )}
+        </div>
+        <div className={styles.formGroup}>
+          <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
+            참고자료
+          </h2>
+          <div className={styles.referenceUploadSection}>
+            <input
+              type="file"
+              accept=".pdf"
+              multiple
+              onChange={handleReferenceFilesChange}
+              className={styles.fileInput}
+            />
+            {referenceFiles.length > 0 && (
+              <div className={styles.referenceFiles}>
+                {referenceFiles.map((file, index) => (
+                  <div key={index} className={styles.referenceFile}>
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeReferenceFile(index)}
+                      className={styles.removeFileButton}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <button
           onClick={handleSubmit}

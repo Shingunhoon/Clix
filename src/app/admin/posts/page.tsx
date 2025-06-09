@@ -15,6 +15,8 @@ import {
   updateDoc,
   increment,
 } from 'firebase/firestore'
+import { ref, deleteObject } from 'firebase/storage'
+import { storage } from '@/firebase/firebase'
 import Link from 'next/link'
 import styles from './page.module.css'
 
@@ -181,9 +183,60 @@ export default function PostManagement() {
     }
 
     try {
-      await deleteDoc(doc(db, 'posts', postId))
+      // 먼저 게시물 정보를 가져와서 파일 URL들을 확인
+      const postRef = doc(db, 'posts', postId)
+      const postSnap = await getDoc(postRef)
+
+      if (postSnap.exists()) {
+        const postData = postSnap.data()
+        const deleteFilePromises = []
+
+        // 썸네일 이미지 삭제
+        if (postData.thumbnailUrl) {
+          try {
+            const thumbnailRef = ref(storage, postData.thumbnailUrl)
+            deleteFilePromises.push(deleteObject(thumbnailRef))
+            console.log('썸네일 이미지 삭제:', postData.thumbnailUrl)
+          } catch (error) {
+            console.error('썸네일 이미지 삭제 실패:', error)
+          }
+        }
+
+        // 상세 이미지들 삭제
+        if (postData.detailImages && postData.detailImages.length > 0) {
+          postData.detailImages.forEach((imageUrl: string) => {
+            try {
+              const detailImageRef = ref(storage, imageUrl)
+              deleteFilePromises.push(deleteObject(detailImageRef))
+              console.log('상세 이미지 삭제:', imageUrl)
+            } catch (error) {
+              console.error('상세 이미지 삭제 실패:', error)
+            }
+          })
+        }
+
+        // PPT 파일 삭제
+        if (postData.pptFileUrl) {
+          try {
+            const pptRef = ref(storage, postData.pptFileUrl)
+            deleteFilePromises.push(deleteObject(pptRef))
+            console.log('PPT 파일 삭제:', postData.pptFileUrl)
+          } catch (error) {
+            console.error('PPT 파일 삭제 실패:', error)
+          }
+        }
+
+        // 모든 파일 삭제 실행
+        if (deleteFilePromises.length > 0) {
+          await Promise.all(deleteFilePromises)
+          console.log('모든 파일이 삭제되었습니다.')
+        }
+      }
+
+      // 게시물 삭제
+      await deleteDoc(postRef)
       await fetchPosts()
-      alert('게시물이 삭제되었습니다.')
+      alert('게시물과 관련 파일들이 모두 삭제되었습니다.')
     } catch (error) {
       console.error('게시물 삭제 실패:', error)
       alert('게시물 삭제에 실패했습니다.')

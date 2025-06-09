@@ -49,6 +49,7 @@ interface Banner {
   position: 'right'
   isActive: boolean
   order: number
+  year?: string
 }
 
 export default function Home() {
@@ -57,9 +58,10 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [banners, setBanners] = useState<Banner[]>([])
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [showLoadMoreButton, setShowLoadMoreButton] = useState(false)
   const [lastDoc, setLastDoc] = useState<any>(null)
   const [hasMore, setHasMore] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
   const observer = useRef<IntersectionObserver | null>(null)
   const POSTS_PER_PAGE = 9
 
@@ -109,6 +111,7 @@ export default function Home() {
 
       if (querySnapshot.empty) {
         setHasMore(false)
+        setShowLoadMoreButton(false)
         return
       }
 
@@ -155,19 +158,11 @@ export default function Home() {
             } as Post
           }
 
-          // 작성자 정보 가져오기
-          const authorRef = doc(db, 'users', postData.author.email)
-          const authorSnap = await getDoc(authorRef)
-          const authorData = authorSnap.data() as any
-
-          // 작성자 이름이 있는 경우에만 사용
-          const authorName = authorData?.name || postData.author.name || '익명'
-
           return {
             id: docSnapshot.id,
             ...postData,
             author: {
-              name: authorName,
+              name: postData.author.name || '익명',
               email: postData.author.email,
             },
             likes: postData.likes || [],
@@ -180,6 +175,11 @@ export default function Home() {
       setPosts((prevPosts) =>
         isInitial ? postsData : [...prevPosts, ...postsData]
       )
+
+      // 9개 이상의 게시물이 있으면 화살표 버튼 표시
+      if (isInitial && postsData.length === POSTS_PER_PAGE) {
+        setShowLoadMoreButton(true)
+      }
     } catch (error) {
       console.error('게시물 로딩 중 오류:', error)
       toast.error('게시물을 불러오는 중 오류가 발생했습니다.')
@@ -191,69 +191,60 @@ export default function Home() {
     fetchPosts(true)
   }, [])
 
-  // Intersection Observer 설정
-  const lastPostElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      // 이미 로딩 중이거나 더 이상 불러올 게시물이 없으면 관찰 중지
-      if (loadingMore || !hasMore) {
-        if (observer.current) {
-          observer.current.disconnect()
+  // 수동으로 더 많은 게시물 로드
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+    try {
+      await fetchPosts(false)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  // 스크롤 이벤트 리스너 추가
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showLoadMoreButton && !loadingMore && hasMore) {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop
+        const windowHeight = window.innerHeight
+        const documentHeight = document.documentElement.scrollHeight
+
+        // 스크롤이 페이지 하단 근처에 도달했을 때
+        if (scrollTop + windowHeight >= documentHeight - 100) {
+          setShowLoadMoreButton(true)
         }
-        return
       }
+    }
 
-      // 이전 observer 제거
-      if (observer.current) {
-        observer.current.disconnect()
-      }
-
-      // 새로운 observer 설정
-      observer.current = new IntersectionObserver(
-        (entries) => {
-          // 마지막 게시물이 화면에 보이기 시작하면
-          if (entries[0].isIntersecting && hasMore && !loadingMore) {
-            console.log('추가 게시물 로딩 시작...')
-            setLoadingMore(true)
-            fetchPosts(false)
-              .then(() => {
-                console.log('추가 게시물 로딩 완료')
-              })
-              .finally(() => {
-                setLoadingMore(false)
-              })
-          }
-        },
-        {
-          // 마지막 게시물이 화면의 20% 정도 보일 때 로딩 시작
-          threshold: 0.2,
-          // 마지막 게시물이 화면 하단에서 100px 전에 로딩 시작
-          rootMargin: '0px 0px 100px 0px',
-        }
-      )
-
-      // 마지막 게시물 요소 관찰 시작
-      if (node) {
-        observer.current.observe(node)
-      }
-    },
-    [loadingMore, hasMore, lastDoc]
-  )
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [showLoadMoreButton, loadingMore, hasMore])
 
   // 배너 불러오기
   useEffect(() => {
     const fetchBanners = async () => {
       try {
         const bannersRef = collection(db, 'banners')
+
+        // 메인 페이지 배너: year 필드가 없는 배너만 표시
         const q = query(
           bannersRef,
           where('isActive', '==', true),
           where('position', '==', 'right')
         )
         const querySnapshot = await getDocs(q)
-        const bannersData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Banner[]
+        const bannersData = querySnapshot.docs
+          .map(
+            (doc) =>
+              ({
+                id: doc.id,
+                ...doc.data(),
+              } as Banner)
+          )
+          .filter((banner) => !banner.year) // year 필드가 없는 배너만 필터링
 
         // order 기준으로 정렬
         setBanners(bannersData.sort((a, b) => a.order - b.order))
@@ -350,11 +341,7 @@ export default function Home() {
             <p>등록된 게시물이 없습니다.</p>
           ) : (
             posts.map((post, index) => (
-              <div
-                key={post.id}
-                ref={index === posts.length - 1 ? lastPostElementRef : null}
-                className={styles.card}
-              >
+              <div key={post.id} className={styles.card}>
                 <div className={styles.imageContainer}>
                   <Link
                     href={`/post/${post.id}`}
@@ -407,6 +394,9 @@ export default function Home() {
                       <span className={styles.views}>
                         조회수: {post.views.toLocaleString()}
                       </span>
+                      <span className={styles.createdAt}>
+                        {post.createdAt.toDate().toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -414,21 +404,14 @@ export default function Home() {
             ))
           )}
         </div>
-        {loadingMore && (
-          <div className={styles.loadingMore}>추가 게시물을 불러오는 중...</div>
-        )}
-        {currentUser && (
-          <Link href="/upload" className={styles.floatingButton}>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className={styles.plusIcon}
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </Link>
+        {showLoadMoreButton && (
+          <button
+            className={styles.loadMoreButton}
+            onClick={handleLoadMore}
+            disabled={loadingMore || !hasMore}
+          >
+            {loadingMore ? '로딩 중...' : '더 많은 게시물 보기'}
+          </button>
         )}
       </div>
       <div className={styles.rightBanner}>
@@ -436,7 +419,7 @@ export default function Home() {
           <img
             key={banner.id}
             src={banner.imageUrl}
-            alt="오른쪽 배너"
+            alt="메인 배너"
             className={styles.bannerImage}
           />
         ))}

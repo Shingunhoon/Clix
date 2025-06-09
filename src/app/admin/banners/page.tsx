@@ -40,6 +40,7 @@ interface Banner {
   position: 'right'
   isActive: boolean
   order: number
+  year?: string
   createdAt: {
     toDate: () => Date
   }
@@ -51,6 +52,30 @@ export default function BannerManagement() {
   const [loading, setLoading] = useState(true)
   const [banners, setBanners] = useState<Banner[]>([])
   const [uploading, setUploading] = useState(false)
+  const [selectedYear, setSelectedYear] = useState<string>('')
+  const [availableYears, setAvailableYears] = useState<string[]>([])
+
+  // 실제 게시물이 있는 연도 목록 가져오기
+  const fetchAvailableYears = async () => {
+    try {
+      const postsRef = collection(db, 'posts')
+      const q = query(postsRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+
+      const yearSet = new Set<string>()
+      querySnapshot.docs.forEach((doc) => {
+        const year = doc.data().createdAt.toDate().getFullYear().toString()
+        yearSet.add(year)
+      })
+
+      const yearsArray = Array.from(yearSet).sort(
+        (a, b) => Number(b) - Number(a)
+      )
+      setAvailableYears(yearsArray)
+    } catch (error) {
+      console.error('연도 목록 로딩 중 오류:', error)
+    }
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -62,7 +87,7 @@ export default function BannerManagement() {
           if (userData.role === 'admin' || userData.role === 'subAdmin') {
             const { email: _, ...userInfo } = userData
             setCurrentUser({ email: user.email, ...userInfo })
-            fetchBanners()
+            await Promise.all([fetchBanners(), fetchAvailableYears()])
           } else {
             router.push('/')
           }
@@ -108,7 +133,7 @@ export default function BannerManagement() {
     try {
       // 현재 활성화된 배너들의 최대 order 값 찾기
       const activeBanners = banners.filter(
-        (b) => b.isActive && b.position === 'right'
+        (b) => b.isActive && b.position === 'right' && b.year === selectedYear
       )
       const maxOrder =
         activeBanners.length > 0
@@ -118,7 +143,7 @@ export default function BannerManagement() {
       // 새 이미지 업로드
       const storageRef = ref(
         storage,
-        `banners/right/${Date.now()}_${file.name}`
+        `banners/right/${selectedYear || 'general'}/${Date.now()}_${file.name}`
       )
       await uploadBytes(storageRef, file)
       const imageUrl = await getDownloadURL(storageRef)
@@ -129,6 +154,7 @@ export default function BannerManagement() {
         position: 'right',
         isActive: true,
         order: maxOrder + 1,
+        year: selectedYear || null,
         createdAt: new Date(),
       })
 
@@ -147,7 +173,8 @@ export default function BannerManagement() {
       await updateDoc(doc(db, 'banners', banner.id), {
         isActive: !banner.isActive,
         order: !banner.isActive
-          ? banners.filter((b) => b.isActive).length + 1
+          ? banners.filter((b) => b.isActive && b.year === banner.year).length +
+            1
           : 0,
       })
       toast.success(
@@ -164,7 +191,7 @@ export default function BannerManagement() {
 
   const handleMove = async (banner: Banner, direction: 'up' | 'down') => {
     const activeBanners = banners
-      .filter((b) => b.isActive)
+      .filter((b) => b.isActive && b.year === banner.year)
       .sort((a, b) => a.order - b.order)
     const currentIndex = activeBanners.findIndex((b) => b.id === banner.id)
 
@@ -212,6 +239,14 @@ export default function BannerManagement() {
     }
   }
 
+  // 선택된 연도의 배너만 필터링
+  const filteredBanners = banners.filter((banner) => {
+    if (selectedYear === '') {
+      return banner.position === 'right' && !banner.year
+    }
+    return banner.position === 'right' && banner.year === selectedYear
+  })
+
   if (loading) {
     return <div className={styles.loading}>로딩 중...</div>
   }
@@ -220,8 +255,27 @@ export default function BannerManagement() {
     <div className={styles.container}>
       <h1 className={styles.title}>배너 관리</h1>
 
+      <div className={styles.yearSelector}>
+        <label htmlFor="yearSelect">연도 선택:</label>
+        <select
+          id="yearSelect"
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          className={styles.yearSelect}
+        >
+          <option value="">일반 배너</option>
+          {availableYears.map((year) => (
+            <option key={year} value={year}>
+              {year}년 배너
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={styles.bannerSection}>
-        <h2>우측 배너</h2>
+        <h2>
+          {selectedYear ? `${selectedYear}년 우측 배너` : '일반 우측 배너'}
+        </h2>
         <div className={styles.uploadBox}>
           <input
             type="file"
@@ -235,8 +289,7 @@ export default function BannerManagement() {
           </label>
         </div>
         <div className={styles.bannerList}>
-          {banners
-            .filter((banner) => banner.position === 'right')
+          {filteredBanners
             .sort((a, b) => a.order - b.order)
             .map((banner) => (
               <div key={banner.id} className={styles.bannerItem}>
@@ -273,7 +326,7 @@ export default function BannerManagement() {
                       className={styles.orderButton}
                       disabled={
                         banner.order ===
-                        banners.filter((b) => b.position === 'right').length
+                        filteredBanners.filter((b) => b.isActive).length
                       }
                     >
                       ↓
