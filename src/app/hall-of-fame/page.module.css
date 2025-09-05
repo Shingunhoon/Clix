@@ -186,12 +186,13 @@
 
 .imageContainer {
   width: 100%;
-  height: 250px;
+  height: 240px;
   border-radius: 4px 4px 0 0;
   overflow: hidden;
   border: none;
   background-color: #f8f9fa;
   position: relative;
+  flex-shrink: 0;
 }
 
 .cardImage {
@@ -206,79 +207,151 @@
   transform: scale(1.05);
 }
 
-.cardContent {
-  padding: 15px;
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  border: none;
+  background-color: #f8f9fa;
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background-color: white;
-  flex: 1;
-  color: #000;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.2rem;
 }
 
-.card h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0;
-  color: #000;
-  white-space: nowrap;
+.cardContent {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background-color: white;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.cardContent h3 {
+  margin: 0 0 0px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 2em;
+  line-height: 1.1;
 }
 
 .cardInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 15px;
-  color: #000;
+  gap: 1px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.techStackContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.techStackLabel {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.techStackList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 1px;
+}
+
+.techStackItem {
+  background: #f1f1f1;
+  border-radius: 6px;
+  padding: 1px 4px;
+  font-size: 11px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.techStackMore {
+  background: #e0e0e0;
+  border-radius: 6px;
+  padding: 1px 4px;
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
 }
 
 .cardMeta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 5px;
+  padding-top: 5px;
   border-top: 1px solid #eee;
   font-size: 14px;
-  color: #000;
+  margin-bottom: 0;
 }
 
 .cardStats {
   display: flex;
-  gap: 12px;
   align-items: center;
-  color: #000;
+  gap: 12px;
+  font-size: 14px;
+  color: #666;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.views {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
 }
 
 .createdAt {
-  color: #000;
+  color: #999;
   font-size: 13px;
   padding: 4px 8px;
   border-radius: 4px;
   background-color: #f8f9fa;
+  margin-left: auto;
 }
 
 .likeButton,
-.viewCount {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #000;
-}
-
-.likeButton {
+.likeButton:hover,
+.likeButton:focus {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  transition: all 0.2s ease;
-  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 14px;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.likeButton {
+  color: #666;
 }
 
 .likeButton:hover {
-  transform: scale(1.1);
+  color: #ff4d4d;
 }
 
 .likeButton.liked {
@@ -286,9 +359,8 @@
 }
 
 .heartIcon {
-  width: 18px;
-  height: 18px;
-  transition: all 0.2s ease;
+  width: 16px;
+  height: 16px;
 }
 
 .viewCount {
@@ -301,21 +373,6 @@
 .viewCount svg {
   width: 16px;
   height: 16px;
-}
-
-.imagePlaceholder {
-  width: 100%;
-  height: 100%;
-  border-radius: 4px 4px 0 0;
-  overflow: hidden;
-  border: none;
-  background-color: #f8f9fa;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-  font-size: 1.2rem;
 }
 
 .loading {

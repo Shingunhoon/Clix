@@ -83,38 +83,50 @@ export default function Login() {
   if (loading) return null
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>로그인</h1>
-
-      <form onSubmit={handleLogin} className={styles.form}>
-        <input
-          type="email"
-          value={email}
-          onChange={handleEmailChange}
-          onBlur={() => setEmailTouched(true)}
-          placeholder="email을 입력해주세요."
-          className={styles.input}
-        />
-        {emailTouched && emailError && (
-          <p className={styles.error}>{emailError}</p>
-        )}
-
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호를 입력해주세요."
-          className={styles.input}
-        />
-
-        <button type="submit" className={styles.button}>
+    <div className={styles.pageWrapper}>
+      <div className={styles.container}>
+        <div
+          style={{
+            fontSize: '32px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            marginBottom: '20px',
+            color: 'black',
+          }}
+        >
           로그인
-        </button>
-      </form>
+        </div>
 
-      <div className={styles.links}>
-        <a href="/forgotPassword">비밀번호 찾기</a> /{' '}
-        <a href="/signup">회원가입</a>
+        <form onSubmit={handleLogin} className={styles.form}>
+          <input
+            type="email"
+            value={email}
+            onChange={handleEmailChange}
+            onBlur={() => setEmailTouched(true)}
+            placeholder="이메일을 입력해주세요"
+            className={styles.input}
+          />
+          {emailTouched && emailError && (
+            <p className={styles.error}>{emailError}</p>
+          )}
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호를 입력해주세요"
+            className={styles.input}
+          />
+
+          <button type="submit" className={styles.button}>
+            로그인
+          </button>
+        </form>
+
+        <div className={styles.links}>
+          <a href="/forgotPassword">비밀번호 찾기</a> /{' '}
+          <a href="/signup">회원가입</a>
+        </div>
       </div>
     </div>
   )

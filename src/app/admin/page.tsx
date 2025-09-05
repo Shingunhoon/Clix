@@ -29,6 +29,7 @@ interface Stats {
   totalPosts: number
   totalComments: number
   activeBanners: number
+  totalPhotoAlbums: number
 }
 
 export default function AdminPage() {
@@ -40,6 +41,7 @@ export default function AdminPage() {
     totalPosts: 0,
     totalComments: 0,
     activeBanners: 0,
+    totalPhotoAlbums: 0,
   })
 
   useEffect(() => {
@@ -90,11 +92,16 @@ export default function AdminPage() {
       const bannersSnapshot = await getDocs(bannersQuery)
       const activeBanners = bannersSnapshot.size
 
+      // 포토앨범 수 조회
+      const photoAlbumsSnapshot = await getDocs(collection(db, 'photoAlbums'))
+      const totalPhotoAlbums = photoAlbumsSnapshot.size
+
       setStats({
         totalUsers,
         totalPosts,
         totalComments,
         activeBanners,
+        totalPhotoAlbums,
       })
     } catch (error) {
       console.error('통계 데이터 조회 실패:', error)
@@ -128,6 +135,10 @@ export default function AdminPage() {
         <Link href="/admin/banners" className={styles.statCard}>
           <h3>활성 배너</h3>
           <p>{stats.activeBanners.toLocaleString()}개</p>
+        </Link>
+        <Link href="/admin/photo-albums" className={styles.statCard}>
+          <h3>포토앨범</h3>
+          <p>{stats.totalPhotoAlbums.toLocaleString()}개</p>
         </Link>
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore'
 import { ref, deleteObject } from 'firebase/storage'
 import { auth, db, storage } from '@/firebase/firebase'
+import { marked } from 'marked'
 import styles from './page.module.css'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -30,6 +31,7 @@ interface TeamMember {
   name: string
   githubLink?: string
   portfolioLink?: string
+  role: string
 }
 
 interface Post {
@@ -52,6 +54,9 @@ interface Post {
   teamName?: string
   pptFileUrl?: string
   referenceFileUrls?: string[]
+  websiteLinks?: string[]
+  githubLinks?: string[]
+  techStack?: string[]
 }
 
 interface PostData extends Omit<Post, 'id' | 'createdAt'> {
@@ -283,19 +288,17 @@ export default function PostPage() {
       <div className={styles.mainContent}>
         <div className={styles.postContainer}>
           <div className={styles.postHeader}>
-            {post.thumbnailUrl && (
-              <div className={styles.thumbnailContainer}>
-                <img
-                  src={post.thumbnailUrl}
-                  alt={post.title}
-                  className={styles.thumbnail}
-                  onClick={() =>
-                    post.thumbnailUrl && setSelectedImage(post.thumbnailUrl)
-                  }
-                  style={{ cursor: 'pointer' }}
-                />
-              </div>
-            )}
+            <div className={styles.thumbnailContainer}>
+              <img
+                src={post.thumbnailUrl}
+                alt={post.title}
+                className={styles.thumbnail}
+                onClick={() =>
+                  post.thumbnailUrl && setSelectedImage(post.thumbnailUrl)
+                }
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
             <div className={styles.postMetaContainer}>
               <h1 className={styles.title}>{post.title}</h1>
               <div className={styles.postMeta}>
@@ -309,68 +312,177 @@ export default function PostPage() {
                   <div className={styles.teamMembers}>
                     <div className={styles.teamMembersHeader}>
                       <div className={styles.teamMembersList}>
-                        {post.teamMembers.map((member, index) => (
-                          <div key={index} className={styles.teamMember}>
-                            <span className={styles.teamMemberLabel}>
-                              {index === 0 ? '팀원: ' : ''}
-                              {member.name}
-                            </span>
-                            <div className={styles.memberLinks}>
-                              {member.githubLink && (
-                                <a
-                                  href={member.githubLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={styles.memberLink}
-                                  title="GitHub"
-                                >
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    width="18"
-                                    height="18"
-                                    fill="currentColor"
+                        {/* 지도교수 표시 */}
+                        {post.teamMembers
+                          .filter(
+                            (member) => (member.role || '팀원') === '지도교수'
+                          )
+                          .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+                          .map((member, index) => (
+                            <div
+                              key={`professor-${index}`}
+                              className={styles.teamMember}
+                            >
+                              <span className={styles.teamMemberLabel}>
+                                지도교수: {member.name}
+                              </span>
+                              <div className={styles.memberLinks}>
+                                {member.githubLink && (
+                                  <a
+                                    href={member.githubLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="GitHub"
                                   >
-                                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                                  </svg>
-                                </a>
-                              )}
-                              {member.portfolioLink && (
-                                <a
-                                  href={member.portfolioLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={styles.memberLink}
-                                  title="포트폴리오"
-                                >
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    width="18"
-                                    height="18"
-                                    fill="currentColor"
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                                    </svg>
+                                  </a>
+                                )}
+                                {member.portfolioLink && (
+                                  <a
+                                    href={member.portfolioLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="포트폴리오"
                                   >
-                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                                  </svg>
-                                </a>
-                              )}
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+
+                        {/* 팀장 표시 */}
+                        {post.teamMembers
+                          .filter(
+                            (member) => (member.role || '팀원') === '팀장'
+                          )
+                          .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+                          .map((member, index) => (
+                            <div
+                              key={`leader-${index}`}
+                              className={styles.teamMember}
+                            >
+                              <span className={styles.teamMemberLabel}>
+                                팀장: {member.name}
+                              </span>
+                              <div className={styles.memberLinks}>
+                                {member.githubLink && (
+                                  <a
+                                    href={member.githubLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="GitHub"
+                                  >
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                                    </svg>
+                                  </a>
+                                )}
+                                {member.portfolioLink && (
+                                  <a
+                                    href={member.portfolioLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="포트폴리오"
+                                  >
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+
+                        {/* 팀원 표시 */}
+                        {post.teamMembers
+                          .filter(
+                            (member) => (member.role || '팀원') === '팀원'
+                          )
+                          .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+                          .map((member, index) => (
+                            <div
+                              key={`member-${index}`}
+                              className={`${styles.teamMember} ${
+                                index > 0 ? styles.teamMemberIndent : ''
+                              }`}
+                            >
+                              <span className={styles.teamMemberLabel}>
+                                {index === 0 ? '팀원: ' : ''}
+                                {member.name}
+                              </span>
+                              <div className={styles.memberLinks}>
+                                {member.githubLink && (
+                                  <a
+                                    href={member.githubLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="GitHub"
+                                  >
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                                    </svg>
+                                  </a>
+                                )}
+                                {member.portfolioLink && (
+                                  <a
+                                    href={member.portfolioLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.memberLink}
+                                    title="포트폴리오"
+                                  >
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      width="18"
+                                      height="18"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                                    </svg>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   </div>
                 )}
-                <div className={styles.dateContainer}>
-                  <span className={styles.dateLabel}>작성날짜:</span>
-                  <span className={styles.date}>
-                    {post.createdAt.toDate().toLocaleString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
                 <div className={styles.statsContainer}>
                   <div className={styles.viewCount}>
                     <svg
@@ -405,32 +517,117 @@ export default function PostPage() {
                       {post.likes.length}
                     </span>
                   </button>
+                  <div className={styles.dateContainer}>
+                    <span className={styles.date}>
+                      {post.createdAt.toDate().toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  {post.websiteLinks && post.websiteLinks.length > 0 && (
+                    <div className={styles.websiteLinksContainer}>
+                      {post.websiteLinks.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.websiteLink}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="#000"
+                            className={styles.linkIcon}
+                          >
+                            <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                          </svg>
+                          <span>웹사이트</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  {post.githubLinks && post.githubLinks.length > 0 && (
+                    <div className={styles.websiteLinksContainer}>
+                      {post.githubLinks.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.websiteLink}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="#000"
+                            className={styles.linkIcon}
+                          >
+                            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                          </svg>
+                          <span>GitHub</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
+          {post.techStack && post.techStack.length > 0 && (
+            <div className={styles.postHeaderFullRow}>
+              <div className={styles.techStackSection}>
+                <div className={styles.techStackList}>
+                  {post.techStack.map((tech, index) => (
+                    <span key={index} className={styles.techStackItem}>
+                      # {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>설명</h2>
-            <div className={styles.content}>{post.content}</div>
+            <h2 className={styles.sectionTitle}>프로젝트 개요</h2>
+            <div
+              className={styles.content}
+              dangerouslySetInnerHTML={{ __html: marked(post.content) }}
+            />
+
+            {post.detailImages && post.detailImages.length > 0 && (
+              <div className={styles.detailImagesSection}>
+                <h3 className={styles.detailImagesTitle}>상세 이미지</h3>
+                <div className={styles.detailImagesGallery}>
+                  {post.detailImages.map((imageUrl, index) => (
+                    <div key={index} className={styles.detailImageContainer}>
+                      <img
+                        src={imageUrl}
+                        alt={`상세 이미지 ${index + 1}`}
+                        className={styles.detailImage}
+                        onClick={() => setSelectedImage(imageUrl)}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {post.detailImages && post.detailImages.length > 0 && (
+          {post.pptFileUrl && (
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>상세 이미지</h2>
-              <div className={styles.detailImages}>
-                {post.detailImages.map((imageUrl, index) => (
-                  <div key={index} className={styles.detailImageContainer}>
-                    <img
-                      src={imageUrl}
-                      alt={`상세 이미지 ${index + 1}`}
-                      className={styles.detailImage}
-                      onClick={() => setSelectedImage(imageUrl)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </div>
-                ))}
-              </div>
+              <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
+                발표자료
+              </h2>
+              <PptViewer fileUrl={post.pptFileUrl} />
             </div>
           )}
 
@@ -451,19 +648,10 @@ export default function PostPage() {
             </div>
           )}
 
-          {post.pptFileUrl && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
-                발표자료
-              </h2>
-              <PptViewer fileUrl={post.pptFileUrl} />
-            </div>
-          )}
-
           {post.referenceFileUrls && post.referenceFileUrls.length > 0 && (
             <div className={styles.section}>
               <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
-                참고자료
+                보고서
               </h2>
               <div className={styles.referenceFiles}>
                 {post.referenceFileUrls.map((fileUrl, index) => {

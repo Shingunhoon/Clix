@@ -31,6 +31,7 @@ export default function Header() {
   const [userMenuTimer, setUserMenuTimer] = useState<NodeJS.Timeout | null>(
     null
   )
+  const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
   const router = useRouter()
 
@@ -106,6 +107,19 @@ export default function Header() {
     setIsUserMenuOpen(false)
   }
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+    }
+  }
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
   useEffect(() => {
     return () => {
       if (userMenuTimer) {
@@ -158,6 +172,20 @@ export default function Header() {
           </div>
         </nav>
 
+        <div className={styles.searchSection}>
+          <input
+            type="text"
+            placeholder="프로젝트 및 기술태그 검색"
+            className={styles.searchInput}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
+          />
+          <button onClick={handleSearch} className={styles.searchButton}>
+            검색
+          </button>
+        </div>
+
         <div className={styles.authSection}>
           {user ? (
             <div
@@ -184,6 +212,9 @@ export default function Header() {
                   <Link href="/mypage" className={styles.userMenuItem}>
                     마이페이지
                   </Link>
+                  <Link href="/upload" className={styles.userMenuItem}>
+                    프로젝트 업로드
+                  </Link>
                   {(userRole === 'admin' || userRole === 'subAdmin') && (
                     <Link href="/admin" className={styles.userMenuItem}>
                       관리자 페이지
@@ -199,9 +230,11 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <Link href="/login" className={styles.loginButton}>
-              로그인
-            </Link>
+            <div className={styles.authButtons}>
+              <Link href="/login" className={styles.loginButton}>
+                로그인
+              </Link>
+            </div>
           )}
         </div>
       </div>

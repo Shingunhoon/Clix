@@ -174,63 +174,69 @@ export default function Signup() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.pageWrapper}>
       <Head>
         <title>회원가입</title>
       </Head>
 
-      <h1 className={styles.title}>회원가입</h1>
+      <div className={styles.container}>
+        <h1 className={styles.title}>회원가입</h1>
 
-      <form className={styles.form} onSubmit={handleSignup}>
-        {/* 이메일 */}
-        <div className={styles.emailRow}>
+        <form className={styles.form} onSubmit={handleSignup}>
+          {/* 이메일 */}
+          <div className={styles.emailRow}>
+            <input
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              onBlur={() => setEmailTouched(true)}
+              placeholder="email을 입력해주세요."
+              className={styles.input}
+            />
+            <button
+              type="button"
+              className={styles.verifyButton}
+              onClick={handleSendVerification}
+            >
+              인증
+            </button>
+          </div>
+          {emailTouched && emailError && (
+            <p className={styles.error}>{emailError}</p>
+          )}
+          {emailSent && (
+            <p className={styles.success}>인증 이메일이 전송되었습니다!</p>
+          )}
+
+          {/* 비밀번호 */}
           <input
-            type="email"
-            value={email}
-            onChange={handleEmailChange}
-            onBlur={() => setEmailTouched(true)}
-            placeholder="email을 입력해주세요."
+            type="password"
+            value={password}
+            onChange={handlePasswordChange}
+            placeholder="비밀번호를 입력해주세요."
             className={styles.input}
           />
-          <button
-            type="button"
-            className={styles.verifyButton}
-            onClick={handleSendVerification}
-          >
-            인증
+          {passwordError && <p className={styles.error}>{passwordError}</p>}
+
+          {/* 이름 */}
+          <input
+            type="text"
+            value={name}
+            onChange={handleNameChange}
+            placeholder="이름을 입력해주세요."
+            className={styles.input}
+          />
+          {nameError && <p className={styles.error}>{nameError}</p>}
+
+          <button type="submit" className={styles.button}>
+            회원가입
           </button>
-        </div>
-        {emailTouched && emailError && (
-          <p className={styles.error}>{emailError}</p>
-        )}
-        {emailSent && (
-          <p className={styles.success}>인증 이메일이 전송되었습니다!</p>
-        )}
 
-        {/* 비밀번호 */}
-        <input
-          type="password"
-          value={password}
-          onChange={handlePasswordChange}
-          placeholder="비밀번호를 입력해주세요."
-          className={styles.input}
-        />
-        {passwordError && <p className={styles.error}>{passwordError}</p>}
-
-        {/* 이름 */}
-        <input
-          type="text"
-          value={name}
-          onChange={handleNameChange}
-          placeholder="이름을 입력해주세요."
-          className={styles.input}
-        />
-        {nameError && <p className={styles.error}>{nameError}</p>}
-
-        <button type="submit" className={styles.button}>
-          회원가입
-        </button>
-      </form>
+          <p className={styles.info}>
+            메일이 도착하지 않았다면 스팸함을 확인해 주세요.
+          </p>
+        </form>
+      </div>
     </div>
   )
 }

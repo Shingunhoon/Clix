@@ -36,27 +36,71 @@
 
 .postHeader {
   display: flex;
+  flex-wrap: wrap;
   gap: 40px;
-  margin-bottom: 40px;
-  padding-bottom: 30px;
-  border-bottom: 2px solid #000;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* 포스트헤더 내부에서 전체 너비 차지하는 행 */
+.postHeaderFullRow {
+  flex-basis: 100%;
+  margin-top: 12px;
+  margin-left: 12px;
+  position: relative;
+  z-index: 0;
+}
+
+.postHeaderFullRow .techStackSection {
+  margin: 0;
+  padding: 8px 0 0 48px;
+}
+.postHeaderFullRow .techStackList {
+  margin-top: 0;
 }
 
 .thumbnailContainer {
-  flex: 0 0 400px;
-  height: 300px;
+  position: relative;
+  flex: 0 0 350px;
+  height: 280px;
   border-radius: 8px;
-  overflow: hidden;
-  border: 3px solid #000;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #f8f9fa;
+  margin-top: 40px;
+  margin-bottom: 24px;
+  z-index: 1;
+}
+
+/* 기술 스택이 한 줄일 때 썸네일을 올림 */
+.thumbnailContainerSingleLine {
+  margin-top: -200px;
+}
+
+/* 기술 스택이 한 줄일 때 기술 스택을 조회수와 같은 줄에 배치 */
+.thumbnailContainerSingleLine .techStackList {
+  position: absolute;
+  bottom: -80px;
+  left: 0;
+  right: 0;
+  justify-content: center;
+}
+
+/* 기술 스택이 두 줄 이상일 때는 기존 위치 유지 */
+.thumbnailContainerMultiLine {
+  margin-top: 70px;
+}
+
+/* 기술 스택이 두 줄 이상일 때 기술 스택 위치 조정 */
+.thumbnailContainerMultiLine .techStackList {
+  margin-top: 80px;
 }
 
 .thumbnail {
   width: 100%;
-  max-height: 400px;
+  max-height: 350px;
   object-fit: contain;
   border-radius: 8px;
   cursor: pointer;
@@ -85,7 +129,7 @@
 .postMeta {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   font-size: 1.1rem;
   color: #000;
 }
@@ -116,7 +160,10 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-top: 4px;
+  margin-top: 15px;
+  padding: 10px 0;
+  border-top: 1px solid #e0e0e0;
+  flex-wrap: wrap;
 }
 
 .viewCount {
@@ -131,9 +178,13 @@
 }
 
 .section {
-  margin: 40px 0;
-  padding: 20px 0;
-  border-bottom: 1px solid #ddd;
+  margin: 48px 0;
+  padding: 12px 0 0;
+  border-bottom: none;
+}
+
+.section:last-of-type {
+  margin-bottom: 0;
 }
 
 .sectionTitle {
@@ -221,7 +272,6 @@
 .teamMember {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   color: #000;
   font-weight: 500;
@@ -230,8 +280,8 @@
   max-width: 400px;
 }
 
-.teamMember:not(:first-child) {
-  padding-left: 48px; /* "팀원: " 텍스트의 길이만큼 들여쓰기 */
+.teamMemberIndent {
+  padding-left: 48px; /* 2번째 팀원부터 들여쓰기 */
 }
 
 .teamMemberLabel {
@@ -239,6 +289,7 @@
   font-weight: 500;
   font-size: 1.1rem;
   white-space: nowrap;
+  flex: 1;
 }
 
 .memberName {
@@ -403,34 +454,31 @@
   font-weight: 500;
 }
 
-.detailImagesGrid {
+.detailImagesGallery {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-top: 20px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.detailImageContainer {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 3px solid black;
+  margin: 20px 0;
+  align-items: center;
 }
 
 .detailImage {
   width: 100%;
+  max-width: 800px;
   height: auto;
+  max-height: 600px;
   object-fit: contain;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-.detailImage:hover {
-  transform: scale(1.02);
+.detailImagesTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #000;
 }
 
 .pptContainer {
@@ -521,4 +569,146 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 8px;
+  color: #000;
+}
+
+.websiteLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.websiteLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #111 !important;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  background-color: #fff !important;
+  border: none;
+}
+
+.websiteLink:hover {
+  background-color: #f5f5f5 !important;
+  color: #111 !important;
+  text-decoration: none;
+}
+
+.linkIcon {
+  color: #007bff;
+  flex-shrink: 0;
+}
+
+.websiteLinkAnchor span {
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.websiteLinksContainer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.websiteLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #111 !important;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  background-color: #fff !important;
+  border: none;
+}
+
+.websiteLink:hover {
+  background-color: #f5f5f5 !important;
+  color: #111 !important;
+  text-decoration: none;
+}
+
+.techStackContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  color: #000;
+}
+
+.techStackLabel {
+  font-weight: 500;
+  font-size: 1.1rem;
+  min-width: 80px;
+  color: #000;
+}
+
+.techStackList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 30px;
+}
+
+.techStackItem {
+  background: #f1f1f1;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  color: #000;
+  white-space: nowrap;
+}
+
+.techStackSection {
+  margin: 20px 0;
+  padding: 0;
+}
+
+/* 기술 스택 섹션 전용 간격 조정 (다른 레이아웃 간섭 없음) */
+.sectionTechStack {
+  margin: 8px 0 16px;
+  padding: 0;
+}
+
+.sectionTechStack .techStackSection {
+  margin: 0;
+}
+.sectionTechStack .techStackList {
+  margin-top: 0;
+}
+
+.techStackSection .techStackList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.techStackSection .techStackItem {
+  background: #f1f1f1;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.techStackSection .techStackItem:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detailImagesSection {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #eee;
 }

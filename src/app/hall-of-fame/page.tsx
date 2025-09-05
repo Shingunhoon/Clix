@@ -34,6 +34,13 @@ interface Post {
   }
   thumbnailUrl?: string
   teamName?: string
+  teamMembers?: {
+    name: string
+    role: string
+    githubLink?: string
+    portfolioLink?: string
+  }[]
+  techStack?: string[]
 }
 
 export default function HallOfFame() {
@@ -227,10 +234,6 @@ export default function HallOfFame() {
                   <span className={styles.likeCount}>
                     좋아요 {post.likes.length}개
                   </span>
-                  {index === 1 &&
-                    post.likes.length === posts[0]?.likes.length && (
-                      <span className={styles.tieNote}>(공동 1등)</span>
-                    )}
                 </div>
                 <div className={styles.postCard}>
                   <div className={styles.imageContainer}>
@@ -253,6 +256,36 @@ export default function HallOfFame() {
                     <div className={styles.cardInfo}>
                       <span>팀명: {post.teamName || '미지정'}</span>
                       <span>작성자: {post.author.name}</span>
+                      {post.teamMembers &&
+                        post.teamMembers.length > 0 &&
+                        (() => {
+                          const professors = post.teamMembers.filter(
+                            (member) => member.role === '지도교수'
+                          )
+                          return professors.length > 0 ? (
+                            <span>
+                              지도교수:{' '}
+                              {professors.map((p) => p.name).join(', ')}
+                            </span>
+                          ) : null
+                        })()}
+                      {post.techStack && post.techStack.length > 0 && (
+                        <div className={styles.techStackContainer}>
+                          <div className={styles.techStackList}>
+                            {post.techStack.slice(0, 5).map((tech, index) => (
+                              <span
+                                key={index}
+                                className={styles.techStackItem}
+                              >
+                                #{tech}
+                              </span>
+                            ))}
+                            {post.techStack.length > 5 && (
+                              <span className={styles.techStackMore}>+</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className={styles.cardMeta}>
                       <div className={styles.cardStats}>
@@ -279,22 +312,13 @@ export default function HallOfFame() {
                           </svg>
                           <span>{post.likes.length}</span>
                         </button>
-                        <div className={styles.viewCount}>
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                          <span>{post.views || 0}</span>
-                        </div>
+                        <span className={styles.views}>
+                          조회수: {post.views.toLocaleString()}
+                        </span>
+                        <span className={styles.createdAt}>
+                          {post.createdAt.toDate().toLocaleDateString()}
+                        </span>
                       </div>
-                      <span className={styles.createdAt}>
-                        {post.createdAt.toDate().toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                 </div>
