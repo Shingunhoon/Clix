@@ -5,12 +5,12 @@ import {
   setDoc,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
 } from 'firebase/firestore'
 import { db } from '@/firebase/firebase'
 
 const MAX_ATTEMPTS = 5
-const BLOCK_DURATION = 10 * 60 * 1000 // 10분 블록ed
-const TTL_DURATION = 30 * 60 * 1000 // 30분 후 db 삭제
+const BLOCK_DURATION = 5 * 60 * 1000 // 5분 블록
 
 export async function handleLoginAttempt(email: string): Promise<{
   blocked: boolean
@@ -30,7 +30,7 @@ export async function handleLoginAttempt(email: string): Promise<{
       return {
         blocked: true,
         count: data.count,
-        message: '5회 이상 로그인 실패로 10분 동안 로그인할 수 없습니다.',
+        message: '5회 이상 로그인 실패로 5분 동안 로그인할 수 없습니다.',
       }
     }
 
@@ -38,7 +38,6 @@ export async function handleLoginAttempt(email: string): Promise<{
     const updates: any = {
       count: newCount,
       lastAttemptAt: serverTimestamp(),
-      expireAt: new Date(now + TTL_DURATION),
     }
 
     if (newCount >= MAX_ATTEMPTS) {
@@ -56,14 +55,13 @@ export async function handleLoginAttempt(email: string): Promise<{
           : newCount === 4
           ? '마지막 로그인 기회입니다. 비밀번호 변경을 권장합니다.'
           : newCount >= MAX_ATTEMPTS
-          ? '5회 이상 로그인 실패로 10분 동안 로그인할 수 없습니다.'
+          ? '5회 이상 로그인 실패로 5분 동안 로그인할 수 없습니다.'
           : undefined,
     }
   } else {
     await setDoc(ref, {
       count: 1,
       lastAttemptAt: serverTimestamp(),
-      expireAt: new Date(now + TTL_DURATION),
     })
 
     return {
@@ -76,9 +74,5 @@ export async function handleLoginAttempt(email: string): Promise<{
 
 export async function resetLoginAttempt(email: string) {
   const ref = doc(db, 'loginAttempts', email)
-  await setDoc(ref, {
-    count: 0,
-    lastAttemptAt: serverTimestamp(),
-    expireAt: new Date(Date.now() + TTL_DURATION),
-  })
+  await deleteDoc(ref)
 }

@@ -94,6 +94,7 @@ export default function Signup() {
         email,
         isVerified: false,
         requestedAt: Timestamp.now(),
+        expireAt: Timestamp.fromDate(new Date(Date.now() + 60 * 60 * 1000)), // 1시간 후 삭제
       })
 
       localStorage.setItem('emailForSignIn', email)
