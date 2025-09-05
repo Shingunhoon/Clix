@@ -62,9 +62,8 @@ interface Post {
 interface PostData extends Omit<Post, 'id' | 'createdAt'> {
   createdAt: any // Firestore Timestamp
 }
+
 export default function PostPage() {
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false) 
-  const [isCheckedForDelete, setIsCheckedForDelete] = useState(false) 
   const router = useRouter()
   const params = useParams()
   const postId = params.id as string
@@ -147,93 +146,98 @@ export default function PostPage() {
     }
   }, [post]) // post가 로드된 후 실행
 
-const handleInitiateDelete = () => {
-  setShowDeleteConfirmModal(true)
-  setIsCheckedForDelete(false) 
-}
+  const handleDelete = async () => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return
 
+    if (typeof postId !== 'string') return
 
-const confirmDelete = async () => {
-  if (!isCheckedForDelete) {
-    alert('삭제 확인 체크박스를 선택해주세요.') 
-    return
-  }
+    try {
+      // 먼저 댓글들을 삭제
+      const commentsRef = collection(db, 'comments')
+      const q = query(commentsRef, where('postId', '==', postId))
+      const querySnapshot = await getDocs(q)
 
-  if (typeof postId !== 'string') return
+      // 각 댓글 삭제를 Promise 배열로 생성
+      const deletePromises = querySnapshot.docs.map((doc) => {
+        console.log('댓글 삭제:', doc.id)
+        return deleteDoc(doc.ref)
+      })
 
-  try {
-    // 먼저 댓글들을 삭제
-    const commentsRef = collection(db, 'comments')
-    const q = query(commentsRef, where('postId', '==', postId))
-    const querySnapshot = await getDocs(q)
-    const deletePromises = querySnapshot.docs.map((doc) => {
-      console.log('댓글 삭제:', doc.id)
-      return deleteDoc(doc.ref)
-    })
-    await Promise.all(deletePromises)
-    console.log('모든 댓글이 삭제되었습니다.')
+      // 모든 댓글 삭제 실행
+      await Promise.all(deletePromises)
+      console.log('모든 댓글이 삭제되었습니다.')
 
-    // Firebase Storage에서 파일들 삭제 (post가 있을 때만)
-    if (post) {
-      const deleteFilePromises = []
-      if (post.thumbnailUrl) {
-        try {
-          const thumbnailRef = ref(storage, post.thumbnailUrl)
-          deleteFilePromises.push(deleteObject(thumbnailRef))
-          console.log('썸네일 이미지 삭제:', post.thumbnailUrl)
-        } catch (error) {
-          console.error('썸네일 이미지 삭제 실패:', error)
+      // Firebase Storage에서 파일들 삭제
+      if (post) {
+        const deleteFilePromises = []
+
+        // 썸네일 이미지 삭제
+        if (post.thumbnailUrl) {
+          try {
+            const thumbnailRef = ref(storage, post.thumbnailUrl)
+            deleteFilePromises.push(deleteObject(thumbnailRef))
+            console.log('썸네일 이미지 삭제:', post.thumbnailUrl)
+          } catch (error) {
+            console.error('썸네일 이미지 삭제 실패:', error)
+          }
+        }
+
+        // 상세 이미지들 삭제
+        if (post.detailImages && post.detailImages.length > 0) {
+          post.detailImages.forEach((imageUrl) => {
+            try {
+              const detailImageRef = ref(storage, imageUrl)
+              deleteFilePromises.push(deleteObject(detailImageRef))
+              console.log('상세 이미지 삭제:', imageUrl)
+            } catch (error) {
+              console.error('상세 이미지 삭제 실패:', error)
+            }
+          })
+        }
+
+        // PPT 파일 삭제
+        if (post.pptFileUrl) {
+          try {
+            const pptRef = ref(storage, post.pptFileUrl)
+            deleteFilePromises.push(deleteObject(pptRef))
+            console.log('PPT 파일 삭제:', post.pptFileUrl)
+          } catch (error) {
+            console.error('PPT 파일 삭제 실패:', error)
+          }
+        }
+
+        // 참고자료 PDF 파일들 삭제
+        if (post.referenceFileUrls && post.referenceFileUrls.length > 0) {
+          post.referenceFileUrls.forEach((fileUrl) => {
+            try {
+              const pdfRef = ref(storage, fileUrl)
+              deleteFilePromises.push(deleteObject(pdfRef))
+              console.log('참고자료 PDF 파일 삭제:', fileUrl)
+            } catch (error) {
+              console.error('참고자료 PDF 파일 삭제 실패:', error)
+            }
+          })
+        }
+
+        // 모든 파일 삭제 실행
+        if (deleteFilePromises.length > 0) {
+          await Promise.all(deleteFilePromises)
+          console.log('모든 파일이 삭제되었습니다.')
         }
       }
-      if (post.detailImages && post.detailImages.length > 0) {
-        post.detailImages.forEach((imageUrl) => {
-          try {
-            const detailImageRef = ref(storage, imageUrl)
-            deleteFilePromises.push(deleteObject(detailImageRef))
-            console.log('상세 이미지 삭제:', imageUrl)
-          } catch (error) {
-            console.error('상세 이미지 삭제 실패:', error)
-          }
-        })
-      }
-      if (post.pptFileUrl) {
-        try {
-          const pptRef = ref(storage, post.pptFileUrl)
-          deleteFilePromises.push(deleteObject(pptRef))
-          console.log('PPT 파일 삭제:', post.pptFileUrl)
-        } catch (error) {
-          console.error('PPT 파일 삭제 실패:', error)
-        }
-      }
-      if (post.referenceFileUrls && post.referenceFileUrls.length > 0) {
-        post.referenceFileUrls.forEach((fileUrl) => {
-          try {
-            const pdfRef = ref(storage, fileUrl)
-            deleteFilePromises.push(deleteObject(pdfRef))
-            console.log('참고자료 PDF 파일 삭제:', fileUrl)
-          } catch (error) {
-            console.error('참고자료 PDF 파일 삭제 실패:', error)
-          }
-        })
-      }
-      if (deleteFilePromises.length > 0) await Promise.all(deleteFilePromises)
-      console.log('모든 파일이 삭제되었습니다.')
+
+      // 그 다음 게시물 삭제
+      const postRef = doc(db, 'posts', postId)
+      await deleteDoc(postRef)
+      console.log('게시물이 삭제되었습니다.')
+
+      alert('게시물과 관련 파일들이 모두 삭제되었습니다.')
+      router.push('/')
+    } catch (error) {
+      console.error('삭제 중 오류 발생:', error)
+      alert('게시물 삭제 중 오류가 발생했습니다.')
     }
-
-    // 그 다음 게시물 삭제
-    const postRef = doc(db, 'posts', postId)
-    await deleteDoc(postRef)
-    console.log('게시물이 삭제되었습니다.')
-
-    alert('게시물과 관련 파일들이 모두 삭제되었습니다.')
-    router.push('/')
-  } catch (error) {
-    console.error('삭제 중 오류 발생:', error)
-    alert('게시물 삭제 중 오류가 발생했습니다.')
-  } finally {
-    setShowDeleteConfirmModal(false) 
   }
-}
 
   const handleLike = async () => {
     const user = auth.currentUser
@@ -704,9 +708,9 @@ const confirmDelete = async () => {
               <Link href={`/post/${postId}/edit`} className={styles.editButton}>
                 수정
               </Link>
-            <button onClick={handleInitiateDelete} className={styles.deleteButton}>
-              삭제
-            </button>
+              <button onClick={handleDelete} className={styles.deleteButton}>
+                삭제
+              </button>
             </div>
           )}
         </div>
@@ -718,39 +722,6 @@ const confirmDelete = async () => {
           onClose={() => setSelectedImage(null)}
         />
       )}
-    {showDeleteConfirmModal && (
-      <div className={styles.modalOverlay}>
-        <div className={styles.deleteConfirmModal}>
-          <h2 className={styles.modalTitle}>게시물 삭제</h2>
-          <p className={styles.modalMessage}>정말로 게시물을 삭제하시겠습니까? <br/> 모든 내용과 파일이 영구적으로 삭제됩니다.</p>
-          <label className={styles.checkboxContainer}>
-            <input
-              type="checkbox"
-              checked={isCheckedForDelete}
-              onChange={(e) => setIsCheckedForDelete(e.target.checked)}
-              className={styles.modalCheckbox}
-            />
-            <span className={styles.checkmark}></span>
-            <span className={styles.checkboxLabel}>네, 삭제에 동의합니다.</span>
-          </label>
-          <div className={styles.modalButtons}>
-            <button
-              onClick={() => setShowDeleteConfirmModal(false)}
-              className={styles.modalCancelButton}
-            >
-              취소
-            </button>
-            <button
-              onClick={confirmDelete}
-              disabled={!isCheckedForDelete} 
-              className={`${styles.modalDeleteButton} ${!isCheckedForDelete ? styles.modalDeleteButtonDisabled : ''}`}
-            >
-              삭제하기
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
     </div>
   )
 }
