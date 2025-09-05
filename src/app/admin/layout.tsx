@@ -12,7 +12,7 @@ interface User {
   email: string
   name: string
   role: 'admin' | 'subAdmin' | 'user'
-  createdAt: {
+  createdAt?: {
     toDate: () => Date
   }
 }
@@ -35,8 +35,11 @@ export default function AdminLayout({
         if (userSnap.exists()) {
           const userData = userSnap.data() as User
           if (userData.role === 'admin' || userData.role === 'subAdmin') {
-            const { email: _, ...userInfo } = userData
-            setCurrentUser({ email: user.email, ...userInfo })
+            setCurrentUser({
+              email: user.email,
+              name: userData.name,
+              role: userData.role,
+            })
           } else {
             router.push('/')
           }
@@ -95,6 +98,22 @@ export default function AdminLayout({
             }`}
           >
             배너 관리
+          </Link>
+          <Link
+            href="/admin/photo-albums"
+            className={`${styles.navLink} ${
+              pathname === '/admin/photo-albums' ? styles.active : ''
+            }`}
+          >
+            포토앨범 관리
+          </Link>
+          <Link
+            href="/admin/year-meta"
+            className={`${styles.navLink} ${
+              pathname === '/admin/year-meta' ? styles.active : ''
+            }`}
+          >
+            연도별 상단 정보 관리
           </Link>
           <Link
             href="/admin/statistics"

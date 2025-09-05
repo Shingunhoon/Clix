@@ -12,6 +12,8 @@ import {
   getDoc,
   query,
   orderBy,
+  deleteDoc,
+  where,
 } from 'firebase/firestore'
 import styles from './page.module.css'
 
@@ -112,6 +114,82 @@ export default function UserManagement() {
     }
   }
 
+  const handleDeleteUser = async (email: string) => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      alert('권한이 없습니다.')
+      return
+    }
+
+    if (email === 'rjsgns01@naver.com') {
+      alert('최초 관리자는 삭제할 수 없습니다.')
+      return
+    }
+
+    if (email === currentUser.email) {
+      alert('자신을 삭제할 수 없습니다.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `정말로 ${email} 사용자를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 해당 사용자의 모든 게시물과 댓글도 함께 삭제됩니다.`
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      // 1. 해당 사용자가 작성한 게시물 삭제
+      const postsQuery = query(
+        collection(db, 'posts'),
+        where('author.email', '==', email)
+      )
+      const postsSnapshot = await getDocs(postsQuery)
+      const deletePostPromises = postsSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      )
+      await Promise.all(deletePostPromises)
+
+      // 2. 해당 사용자가 작성한 댓글 삭제
+      const commentsQuery = query(
+        collection(db, 'comments'),
+        where('author.email', '==', email)
+      )
+      const commentsSnapshot = await getDocs(commentsQuery)
+      const deleteCommentPromises = commentsSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      )
+      await Promise.all(deleteCommentPromises)
+
+      // 3. 해당 사용자가 좋아요한 게시물에서 좋아요 제거
+      const allPostsQuery = query(collection(db, 'posts'))
+      const allPostsSnapshot = await getDocs(allPostsQuery)
+      const updateLikesPromises = allPostsSnapshot.docs
+        .filter((doc) => {
+          const data = doc.data()
+          return data.likes && data.likes.includes(email)
+        })
+        .map((doc) => {
+          const data = doc.data()
+          const updatedLikes = data.likes.filter(
+            (like: string) => like !== email
+          )
+          return updateDoc(doc.ref, { likes: updatedLikes })
+        })
+      await Promise.all(updateLikesPromises)
+
+      // 4. 사용자 문서 삭제
+      const userRef = doc(db, 'users', email)
+      await deleteDoc(userRef)
+
+      alert('사용자가 성공적으로 삭제되었습니다.')
+      await fetchUsers()
+    } catch (error) {
+      console.error('사용자 삭제 실패:', error)
+      alert('사용자 삭제에 실패했습니다.')
+    }
+  }
+
   // 페이지네이션 관련 계산
   const indexOfLastUser = currentPage * usersPerPage
   const indexOfFirstUser = indexOfLastUser - usersPerPage
@@ -142,6 +220,7 @@ export default function UserManagement() {
               <th>가입일</th>
               <th>권한</th>
               <th>관리</th>
+              <th>삭제</th>
             </tr>
           </thead>
           <tbody>
@@ -186,6 +265,19 @@ export default function UserManagement() {
                         <option value="user">사용자</option>
                         <option value="subAdmin">부관리자</option>
                       </select>
+                    )}
+                </td>
+                <td>
+                  {currentUser?.role === 'admin' &&
+                    user.email !== 'rjsgns01@naver.com' &&
+                    user.email !== currentUser.email && (
+                      <button
+                        onClick={() => handleDeleteUser(user.email)}
+                        className={styles.deleteButton}
+                        title="사용자 삭제"
+                      >
+                        삭제
+                      </button>
                     )}
                 </td>
               </tr>

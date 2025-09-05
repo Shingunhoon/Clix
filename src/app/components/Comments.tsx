@@ -21,6 +21,7 @@ import styles from './Comments.module.css'
 interface Comment {
   id: string
   content: string
+  postTitle?: string
   author: {
     email: string
     name: string
@@ -40,11 +41,13 @@ interface UserData {
 interface CommentsProps {
   postId: string
   highlightCommentId?: string
+  postTitle?: string
 }
 
 export default function Comments({
   postId,
   highlightCommentId,
+  postTitle,
 }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState('')
@@ -74,6 +77,7 @@ export default function Comments({
             return {
               id: docSnapshot.id,
               ...data,
+              postTitle: data.postTitle || postTitle,
               author: {
                 ...data.author,
                 name: authorData?.name || data.author.name,
@@ -93,7 +97,43 @@ export default function Comments({
     }
 
     fetchComments()
-  }, [postId])
+  }, [postId, postTitle])
+
+  // 기존 댓글들의 postTitle 업데이트
+  useEffect(() => {
+    const updateCommentsPostTitle = async () => {
+      if (!postTitle) return
+
+      try {
+        // 해당 게시물의 모든 댓글 조회
+        const q = query(
+          collection(db, 'comments'),
+          where('postId', '==', postId)
+        )
+        const querySnapshot = await getDocs(q)
+
+        // postTitle이 없는 댓글들만 업데이트
+        const updatePromises = querySnapshot.docs
+          .filter((doc) => !doc.data().postTitle)
+          .map((doc) =>
+            updateDoc(doc.ref, {
+              postTitle: postTitle,
+            })
+          )
+
+        if (updatePromises.length > 0) {
+          await Promise.all(updatePromises)
+          console.log(
+            `${updatePromises.length}개의 댓글 postTitle이 업데이트되었습니다.`
+          )
+        }
+      } catch (error) {
+        console.error('댓글 postTitle 업데이트 실패:', error)
+      }
+    }
+
+    updateCommentsPostTitle()
+  }, [postId, postTitle])
 
   // 댓글 작성
   const handleSubmitComment = async (e: React.FormEvent) => {
@@ -116,6 +156,7 @@ export default function Comments({
 
       await addDoc(collection(db, 'comments'), {
         postId,
+        postTitle,
         content: newComment,
         author: {
           email: user.email,
@@ -263,11 +304,23 @@ export default function Comments({
           style={{ marginLeft: `${level * 40}px` }}
         >
           <div className={styles.commentHeader}>
-            <span className={styles.author}>{comment.author.name}</span>
-            <span className={styles.date}>
-              {comment.createdAt.toDate().toLocaleDateString()}
-              {comment.isEdited && ' (수정됨)'}
-            </span>
+            <div className={styles.userIcon}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="16"
+                height="16"
+              >
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
+            <div className={styles.authorAndDate}>
+              <span className={styles.author}>{comment.author.name}</span>
+              <span className={styles.date}>
+                {comment.createdAt.toDate().toLocaleDateString()}
+                {comment.isEdited && ' (수정됨)'}
+              </span>
+            </div>
           </div>
           {editingComment === comment.id ? (
             <div className={styles.editForm}>

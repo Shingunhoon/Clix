@@ -2,12 +2,13 @@
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+  color: #000;
 }
 
 .container h1 {
   margin-bottom: 2rem;
   font-size: 2rem;
-  color: #333;
+  color: #000;
 }
 
 .bannerSection {
@@ -16,12 +17,13 @@
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  color: #000;
 }
 
 .bannerSection h2 {
   margin-bottom: 1rem;
   font-size: 1.5rem;
-  color: #333;
+  color: #000;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid #eee;
 }
@@ -67,6 +69,7 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   background: white;
+  color: #000;
 }
 
 .bannerItem img {
@@ -98,6 +101,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s;
+  color: #000;
 }
 
 .controlButton:hover:not(:disabled) {
@@ -143,17 +147,58 @@
   background: #da190b;
 }
 
+.orderButton {
+  padding: 0.5rem 0.8rem;
+  background: #000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  margin: 0 0.2rem;
+}
+
+.orderButton:hover:not(:disabled) {
+  background: #333;
+}
+
+.orderButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.orderControls {
+  display: flex;
+  gap: 0.2rem;
+}
+
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
   font-size: 1.2rem;
-  color: #666;
+  color: #000;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 1.5rem;
 }
 
 .yearSelector {
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.yearSelector label {
+  font-weight: 500;
+  color: #000;
 }
 
 .yearSelect {
@@ -164,9 +209,15 @@
   background-color: white;
   cursor: pointer;
   min-width: 120px;
+  color: #000;
 }
 
 .yearSelect:focus {
   outline: none;
   border-color: #000;
+}
+
+.yearSelect option {
+  color: #000;
+  background-color: white;
 }

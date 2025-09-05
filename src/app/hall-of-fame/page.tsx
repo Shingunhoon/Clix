@@ -34,6 +34,13 @@ interface Post {
   }
   thumbnailUrl?: string
   teamName?: string
+  teamMembers?: {
+    name: string
+    role: string
+    githubLink?: string
+    portfolioLink?: string
+  }[]
+  techStack?: string[]
 }
 
 export default function HallOfFame() {
@@ -198,108 +205,129 @@ export default function HallOfFame() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>명예의 전당</h1>
-      {loading ? (
-        <div className={styles.loading}>로딩 중...</div>
-      ) : posts.length === 0 ? (
-        <div className={styles.noPosts}>
-          아직 좋아요를 받은 게시물이 없습니다.
-        </div>
-      ) : (
-        <div className={styles.podium}>
-          {posts.map((post, index) => (
-            <div
-              key={post.id}
-              className={`${styles.podiumItem} ${
-                index === 1
-                  ? styles.first
-                  : index === 0
-                  ? styles.second
-                  : styles.third
-              }`}
-            >
-              <div className={styles.rankBadge}>
-                <span>
-                  {index === 1 ? '🥇 1등' : index === 0 ? '🥈 2등' : '🥉 3등'}
-                </span>
-                <span className={styles.likeCount}>
-                  좋아요 {post.likes.length}개
-                </span>
-                {index === 1 &&
-                  post.likes.length === posts[0]?.likes.length && (
-                    <span className={styles.tieNote}>(공동 1등)</span>
-                  )}
-              </div>
-              <div className={styles.postCard}>
-                <div className={styles.imageContainer}>
-                  <Link href={`/post/${post.id}`}>
-                    {post.thumbnailUrl ? (
-                      <img
-                        src={post.thumbnailUrl}
-                        alt={post.title}
-                        className={styles.cardImage}
-                      />
-                    ) : (
-                      <div className={styles.imagePlaceholder}>
-                        <span>이미지 없음</span>
-                      </div>
-                    )}
-                  </Link>
+      <div className={styles.leftSpace}></div>
+      <div className={styles.mainContent}>
+        <h1 className={styles.title}>명예의 전당</h1>
+        {loading ? (
+          <div className={styles.loading}>로딩 중...</div>
+        ) : posts.length === 0 ? (
+          <div className={styles.noPosts}>
+            아직 좋아요를 받은 게시물이 없습니다.
+          </div>
+        ) : (
+          <div className={styles.podium}>
+            {posts.map((post, index) => (
+              <div
+                key={post.id}
+                className={`${styles.podiumItem} ${
+                  index === 1
+                    ? styles.first
+                    : index === 0
+                    ? styles.second
+                    : styles.third
+                }`}
+              >
+                <div className={styles.rankBadge}>
+                  <span>
+                    {index === 1 ? '🥇 1등' : index === 0 ? '🥈 2등' : '🥉 3등'}
+                  </span>
+                  <span className={styles.likeCount}>
+                    좋아요 {post.likes.length}개
+                  </span>
                 </div>
-                <div className={styles.cardContent}>
-                  <h3>{post.title}</h3>
-                  <div className={styles.cardInfo}>
-                    <span>팀명: {post.teamName || '미지정'}</span>
-                    <span>작성자: {post.author.name}</span>
+                <div className={styles.postCard}>
+                  <div className={styles.imageContainer}>
+                    <Link href={`/post/${post.id}`}>
+                      {post.thumbnailUrl ? (
+                        <img
+                          src={post.thumbnailUrl}
+                          alt={post.title}
+                          className={styles.cardImage}
+                        />
+                      ) : (
+                        <div className={styles.imagePlaceholder}>
+                          <span>이미지 없음</span>
+                        </div>
+                      )}
+                    </Link>
                   </div>
-                  <div className={styles.cardMeta}>
-                    <div className={styles.cardStats}>
-                      <button
-                        className={`${styles.likeButton} ${
-                          post.likes.includes(user?.email || '')
-                            ? styles.liked
-                            : ''
-                        }`}
-                        onClick={(e) => handleLike(post.id, post.likes, e)}
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill={
+                  <div className={styles.cardContent}>
+                    <h3>{post.title}</h3>
+                    <div className={styles.cardInfo}>
+                      <span>팀명: {post.teamName || '미지정'}</span>
+                      <span>작성자: {post.author.name}</span>
+                      {post.teamMembers &&
+                        post.teamMembers.length > 0 &&
+                        (() => {
+                          const professors = post.teamMembers.filter(
+                            (member) => member.role === '지도교수'
+                          )
+                          return professors.length > 0 ? (
+                            <span>
+                              지도교수:{' '}
+                              {professors.map((p) => p.name).join(', ')}
+                            </span>
+                          ) : null
+                        })()}
+                      {post.techStack && post.techStack.length > 0 && (
+                        <div className={styles.techStackContainer}>
+                          <div className={styles.techStackList}>
+                            {post.techStack.slice(0, 5).map((tech, index) => (
+                              <span
+                                key={index}
+                                className={styles.techStackItem}
+                              >
+                                #{tech}
+                              </span>
+                            ))}
+                            {post.techStack.length > 5 && (
+                              <span className={styles.techStackMore}>+</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.cardMeta}>
+                      <div className={styles.cardStats}>
+                        <button
+                          className={`${styles.likeButton} ${
                             post.likes.includes(user?.email || '')
-                              ? '#ff4d4d'
-                              : 'none'
-                          }
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className={styles.heartIcon}
+                              ? styles.liked
+                              : ''
+                          }`}
+                          onClick={(e) => handleLike(post.id, post.likes, e)}
                         >
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </svg>
-                        <span>{post.likes.length}</span>
-                      </button>
-                      <div className={styles.viewCount}>
-                        <svg
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        <span>{post.views || 0}</span>
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill={
+                              post.likes.includes(user?.email || '')
+                                ? '#ff4d4d'
+                                : 'none'
+                            }
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className={styles.heartIcon}
+                          >
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                          <span>{post.likes.length}</span>
+                        </button>
+                        <span className={styles.views}>
+                          조회수: {post.views.toLocaleString()}
+                        </span>
+                        <span className={styles.createdAt}>
+                          {post.createdAt.toDate().toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
-                    <span className={styles.createdAt}>
-                      {post.createdAt.toDate().toLocaleDateString()}
-                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+      <div className={styles.rightBanner}>{/* 배너 공간 */}</div>
     </div>
   )
 }
