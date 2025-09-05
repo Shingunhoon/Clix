@@ -97,7 +97,7 @@ export default function Header() {
   const handleUserMenuLeave = () => {
     const timer = setTimeout(() => {
       setIsUserMenuOpen(false)
-    }, 1000) // 1초 지연
+    }, 60000) // 1초 지연
     setUserMenuTimer(timer)
   }
 
