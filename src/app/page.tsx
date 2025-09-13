@@ -351,7 +351,7 @@ export default function Home() {
         <div className={styles.mainContent}>
           <div className={styles.postsGrid}>
             {posts.length === 0 ? (
-              <p>등록된 게시물이 없습니다.</p>
+              <p>게시물을 불러오는 중입니다.</p>
             ) : (
               posts.map((post, index) => (
                 <div key={post.id} className={styles.card}>
