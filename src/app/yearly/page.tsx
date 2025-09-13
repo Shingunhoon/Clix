@@ -352,185 +352,191 @@ export default function YearlyPage() {
     }
   }
 
-  return (
+    return (
     <div className={styles.container}>
-      <div className={styles.leftSpace} />
-      <div className={styles.mainContent}>
-        {/* yearMetas에서 불러온 상단 정보 */}
-        {yearMeta.title && (
-          <div
-            className={styles.metaHeader}
-            style={{
-              background: yearMeta.color || '#fde1e4',
-            }}
+      {/* metaHeader now lives directly inside the main container but spans full width */}
+      {yearMeta.title && (
+        <div
+          className={styles.metaHeader}
+          style={{
+            background: yearMeta.color || '#fde1e4',
+          }}
+        >
+          <h1
+            className={styles.metaTitle}
+            style={{ color: yearMeta.textColor || '#7a2327' }}
           >
-            <h1
-              className={styles.metaTitle}
-              style={{ color: yearMeta.textColor || '#7a2327' }}
-            >
-              {yearMeta.title &&
-              yearMeta.title.includes('중부대학교 정보보호학과') ? (
-                <>
-                  중부대학교 정보보호학과
-                  <br />
-                  {yearMeta.title.replace('중부대학교 정보보호학과', '').trim()}
-                </>
-              ) : (
-                yearMeta.title
-              )}
-            </h1>
-            <div
-              className={styles.metaInfo}
-              style={{ color: yearMeta.textColor || '#7a2327' }}
-            >
-              {yearMeta.headProfessor && (
-                <div>학과장: {yearMeta.headProfessor}</div>
-              )}
-              {yearMeta.advisors && (
-                <div>졸업연구 지도교수: {yearMeta.advisors}</div>
-              )}
-              {yearMeta.committee && (
-                <div>졸업준비위원장: {yearMeta.committee}</div>
-              )}
-              {yearMeta.president && <div>학회장: {yearMeta.president}</div>}
-            </div>
+            {yearMeta.title &&
+            yearMeta.title.includes('중부대학교 정보보호학과') ? (
+              <>
+                중부대학교 정보보호학과
+                <br />
+                {yearMeta.title.replace('중부대학교 정보보호학과', '').trim()}
+              </>
+            ) : (
+              yearMeta.title
+            )}
+          </h1>
+          <div
+            className={styles.metaInfo}
+            style={{ color: yearMeta.textColor || '#7a2327' }}
+          >
+            {yearMeta.headProfessor && (
+              <div>학과장: {yearMeta.headProfessor}</div>
+            )}
+            {yearMeta.advisors && (
+              <div>졸업연구 지도교수: {yearMeta.advisors}</div>
+            )}
+            {yearMeta.committee && (
+              <div>졸업준비위원장: {yearMeta.committee}</div>
+            )}
+            {yearMeta.president && <div>학회장: {yearMeta.president}</div>}
           </div>
-        )}
-        <div className={styles.yearSelector}>
-          {years.map((year) => (
-            <button
-              key={year}
-              className={`${styles.yearButton} ${
-                selectedYear === year ? styles.active : ''
-              }`}
-              onClick={() => setSelectedYear(year)}
-            >
-              {year}년
-            </button>
-          ))}
         </div>
+      )}
 
-        {/* 포토앨범 버튼 */}
-        {photoAlbumLink && (
-          <div className={styles.photoAlbumSection}>
-            <button
-              className={styles.photoAlbumButton}
-              onClick={handlePhotoAlbumClick}
-            >
-              📸 포토앨범 →
-            </button>
+      {/* This wrapper now contains the sidebars and the main content */}
+      <div className={styles.contentWrapper}>
+        <div className={styles.leftSpace} /> {/* Left sidebar */}
+
+        <div className={styles.mainContent}>
+          <div className={styles.yearSelector}>
+            {years.map((year) => (
+              <button
+                key={year}
+                className={`${styles.yearButton} ${
+                  selectedYear === year ? styles.active : ''
+                }`}
+                onClick={() => setSelectedYear(year)}
+              >
+                {year}년
+              </button>
+            ))}
           </div>
-        )}
 
-        {loading ? (
-          <div className={styles.loading}>로딩 중...</div>
-        ) : (
-          <>
-            <div className={styles.postsGrid}>
-              {posts.map((post, index) => (
-                <div key={post.id} className={styles.card}>
-                  <div className={styles.imageContainer}>
-                    <Link href={`/post/${post.id}`}>
-                      {post.thumbnailUrl ? (
-                        <img
-                          src={post.thumbnailUrl}
-                          alt={post.title}
-                          className={styles.cardImage}
-                        />
-                      ) : (
-                        <div className={styles.imagePlaceholder}>
-                          <span>이미지 없음</span>
-                        </div>
-                      )}
-                    </Link>
-                  </div>
-                  <div className={styles.cardContent}>
-                    <h3>{post.title}</h3>
-                    <div className={styles.cardInfo}>
-                      <span>팀명: {post.teamName || '미지정'}</span>
-                      <span>작성자: {post.author.name}</span>
-                      {post.teamMembers &&
-                        post.teamMembers.length > 0 &&
-                        (() => {
-                          const professors = post.teamMembers.filter(
-                            (member) => member.role === '지도교수'
-                          )
-                          return professors.length > 0 ? (
-                            <span>
-                              지도교수:{' '}
-                              {professors.map((p) => p.name).join(', ')}
-                            </span>
-                          ) : null
-                        })()}
-                      {post.techStack && post.techStack.length > 0 && (
-                        <div className={styles.techStackContainer}>
-                          <div className={styles.techStackList}>
-                            {post.techStack.slice(0, 5).map((tech, index) => (
-                              <span
-                                key={index}
-                                className={styles.techStackItem}
-                              >
-                                #{tech}
-                              </span>
-                            ))}
-                            {post.techStack.length > 5 && (
-                              <span className={styles.techStackMore}>+</span>
-                            )}
+          {/* Photo album button */}
+          {photoAlbumLink && (
+            <div className={styles.photoAlbumSection}>
+              <button
+                className={styles.photoAlbumButton}
+                onClick={handlePhotoAlbumClick}
+              >
+                📸 포토앨범 →
+              </button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className={styles.loading}>로딩 중...</div>
+          ) : (
+            <>
+              <div className={styles.postsGrid}>
+                {posts.map((post, index) => (
+                  <div key={post.id} className={styles.card}>
+                    <div className={styles.imageContainer}>
+                      <Link href={`/post/${post.id}`}>
+                        {post.thumbnailUrl ? (
+                          <img
+                            src={post.thumbnailUrl}
+                            alt={post.title}
+                            className={styles.cardImage}
+                          />
+                        ) : (
+                          <div className={styles.imagePlaceholder}>
+                            <span>이미지 없음</span>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </Link>
                     </div>
-                    <div className={styles.cardMeta}>
-                      <div className={styles.cardStats}>
-                        <button className={styles.likeButton}>
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className={styles.heartIcon}
-                          >
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                          </svg>
-                          <span>{post.likes.length}</span>
-                        </button>
-                        <span className={styles.views}>
-                          조회수: {post.views.toLocaleString()}
-                        </span>
-                        <span className={styles.createdAt}>
-                          {post.createdAt.toDate().toLocaleDateString()}
-                        </span>
+                    <div className={styles.cardContent}>
+                      <h3>{post.title}</h3>
+                      <div className={styles.cardInfo}>
+                        <span>팀명: {post.teamName || '미지정'}</span>
+                        <span>작성자: {post.author.name}</span>
+                        {post.teamMembers &&
+                          post.teamMembers.length > 0 &&
+                          (() => {
+                            const professors = post.teamMembers.filter(
+                              (member) => member.role === '지도교수'
+                            )
+                            return professors.length > 0 ? (
+                              <span>
+                                지도교수:{' '}
+                                {professors.map((p) => p.name).join(', ')}
+                              </span>
+                            ) : null
+                          })()}
+                        {post.techStack && post.techStack.length > 0 && (
+                          <div className={styles.techStackContainer}>
+                            <div className={styles.techStackList}>
+                              {post.techStack.slice(0, 5).map((tech, index) => (
+                                <span
+                                  key={index}
+                                  className={styles.techStackItem}
+                                >
+                                  #{tech}
+                                </span>
+                              ))}
+                              {post.techStack.length > 5 && (
+                                <span className={styles.techStackMore}>+</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.cardMeta}>
+                        <div className={styles.cardStats}>
+                          <button className={styles.likeButton}>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className={styles.heartIcon}
+                            >
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                            <span>{post.likes.length}</span>
+                          </button>
+                          <span className={styles.views}>
+                            조회수: {post.views.toLocaleString()}
+                          </span>
+                          <span className={styles.createdAt}>
+                            {post.createdAt.toDate().toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* 게시물 더보기 버튼 */}
-            {showLoadMoreButton && (
-              <div className={styles.loadMoreContainer}>
-                <button
-                  className={styles.loadMoreSmallButton}
-                  onClick={handleLoadMore}
-                  disabled={loadingMore || !hasMore}
-                >
-                  {loadingMore ? '로딩 중...' : '게시물 더보기↓'}
-                </button>
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </div>
-      <div className={styles.rightBanner}>
-        {banners.map((banner) => (
-          <img
-            key={banner.id}
-            src={banner.imageUrl}
-            alt={`${selectedYear}년 배너`}
-            className={styles.bannerImage}
-          />
-        ))}
+
+              {/* Load more posts button */}
+              {showLoadMoreButton && (
+                <div className={styles.loadMoreContainer}>
+                  <button
+                    className={styles.loadMoreSmallButton}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore || !hasMore}
+                  >
+                    {loadingMore ? '로딩 중...' : '게시물 더보기↓'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className={styles.rightBanner}>
+          {banners.map((banner) => (
+            <img
+              key={banner.id}
+              src={banner.imageUrl}
+              alt={`${selectedYear}년 배너`}
+              className={styles.bannerImage}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
