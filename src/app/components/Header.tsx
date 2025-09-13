@@ -31,6 +31,9 @@ export default function Header() {
   const [userMenuTimer, setUserMenuTimer] = useState<NodeJS.Timeout | null>(
     null
   )
+  const [yearMenuTimer, setYearMenuTimer] = useState<NodeJS.Timeout | null>(
+    null
+  ) // yearMenuTimer 추가
   const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
   const router = useRouter()
@@ -39,7 +42,6 @@ export default function Header() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user)
       if (user?.email) {
-        // 사용자 정보 가져오기
         const userRef = doc(db, 'users', user.email)
         const userSnap = await getDoc(userRef)
         if (userSnap.exists()) {
@@ -50,7 +52,6 @@ export default function Header() {
       }
     })
 
-    // 연도 목록 가져오기
     const fetchYears = async () => {
       try {
         const postsRef = collection(db, 'posts')
@@ -70,8 +71,13 @@ export default function Header() {
     }
 
     fetchYears()
-    return () => unsubscribe()
-  }, [])
+    return () => {
+      unsubscribe()
+      // 컴포넌트 언마운트 시 타이머 클리어
+      if (userMenuTimer) clearTimeout(userMenuTimer)
+      if (yearMenuTimer) clearTimeout(yearMenuTimer)
+    }
+  }, [userMenuTimer, yearMenuTimer]) // 의존성 배열에 타이머 추가
 
   const handleLogout = async () => {
     try {
@@ -87,6 +93,7 @@ export default function Header() {
     setIsYearMenuOpen(false)
   }
 
+  // ---- 사용자 메뉴 관련 함수 (개선됨) ----
   const handleUserMenuEnter = () => {
     if (userMenuTimer) {
       clearTimeout(userMenuTimer)
@@ -98,9 +105,10 @@ export default function Header() {
   const handleUserMenuLeave = () => {
     const timer = setTimeout(() => {
       setIsUserMenuOpen(false)
-    }, 1000) // 1초 지연
+    }, 1000) // 0.3초 지연
     setUserMenuTimer(timer)
   }
+  // -------------------------------------
 
   const handleAdminClick = () => {
     router.push('/admin')
@@ -120,13 +128,23 @@ export default function Header() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      if (userMenuTimer) {
-        clearTimeout(userMenuTimer)
-      }
+  // ---- 연도별 메뉴 관련 함수 ----
+  const handleYearMenuEnter = () => {
+    if (yearMenuTimer) {
+      clearTimeout(yearMenuTimer);
+      setYearMenuTimer(null);
     }
-  }, [userMenuTimer])
+    setIsYearMenuOpen(true);
+  };
+
+  const handleYearMenuLeave = () => {
+    const timer = setTimeout(() => {
+      setIsYearMenuOpen(false);
+    }, 300); // 0.3초 지연
+    setYearMenuTimer(timer);
+  };
+  // -------------------------------------
+
 
   return (
     <header className={styles.header}>
@@ -134,44 +152,6 @@ export default function Header() {
         <Link href="/" className={styles.logo}>
           Clix
         </Link>
-
-        <nav className={styles.nav}>
-          <Link
-            href="/hall-of-fame"
-            className={`${styles.navItem} ${
-              pathname === '/hall-of-fame' ? styles.active : ''
-            }`}
-          >
-            명예전당
-          </Link>
-          <div
-            className={styles.yearNavItem}
-            onMouseEnter={() => setIsYearMenuOpen(true)}
-            onMouseLeave={() => setIsYearMenuOpen(false)}
-          >
-            <span
-              className={`${styles.navItem} ${
-                pathname === '/yearly' ? styles.active : ''
-              }`}
-            >
-              연도별
-            </span>
-            {isYearMenuOpen && (
-              <div className={styles.yearDropdown}>
-                {years.map((year) => (
-                  <button
-                    key={year}
-                    className={styles.yearOption}
-                    onClick={() => handleYearClick(year)}
-                  >
-                    {year}년
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
         <div className={styles.searchSection}>
           <input
             type="text"
@@ -185,7 +165,46 @@ export default function Header() {
             검색
           </button>
         </div>
-
+        <nav className={styles.nav}>
+          <div
+            className={styles.yearNavItem}
+            onMouseEnter={handleYearMenuEnter}
+            onMouseLeave={handleYearMenuLeave}
+          >
+            <span
+              className={`${styles.navItem} ${
+                pathname === '/yearly' ? styles.active : ''
+              }`}
+            >
+              연도별
+            </span>
+            {isYearMenuOpen && (
+              <div
+                className={styles.yearDropdown}
+                onMouseEnter={handleYearMenuEnter} // 드롭다운 내부로 마우스 진입 시 타이머 리셋
+                onMouseLeave={handleYearMenuLeave} // 드롭다운 내부에서 마우스 이탈 시 타이머 시작
+              >
+                {years.map((year) => (
+                  <button
+                    key={year}
+                    className={styles.yearOption}
+                    onClick={() => handleYearClick(year)}
+                  >
+                    {year}년
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <Link
+            href="/hall-of-fame"
+            className={`${styles.navItem} ${
+              pathname === '/hall-of-fame' ? styles.active : ''
+            }`}
+          >
+            명예전당
+          </Link>
+        </nav>
         <div className={styles.authSection}>
           {user ? (
             <div
@@ -195,8 +214,9 @@ export default function Header() {
             >
               <button
                 className={styles.userNameButton}
-                onMouseEnter={handleUserMenuEnter}
-                onMouseLeave={handleUserMenuLeave}
+                // 여기서는 버튼 자체에 onMouseEnter/onMouseLeave를 추가하지 않고,
+                // 부모 div (styles.userMenu)에서 전체적으로 관리합니다.
+                // 이렇게 해야 드롭다운 영역까지 포함하여 마우스 이탈을 감지합니다.
               >
                 {userName}
                 {(userRole === 'admin' || userRole === 'subAdmin') && (
@@ -206,8 +226,8 @@ export default function Header() {
               {isUserMenuOpen && (
                 <div
                   className={styles.userDropdown}
-                  onMouseEnter={handleUserMenuEnter}
-                  onMouseLeave={handleUserMenuLeave}
+                  onMouseEnter={handleUserMenuEnter} // 드롭다운 내부로 마우스 진입 시 타이머 리셋
+                  onMouseLeave={handleUserMenuLeave} // 드롭다운 내부에서 마우스 이탈 시 타이머 시작
                 >
                   <Link href="/mypage" className={styles.userMenuItem}>
                     마이페이지
