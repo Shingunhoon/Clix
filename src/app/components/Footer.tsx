@@ -10,7 +10,7 @@ export default function Footer() {
         <div className={styles.footerSection}>
           <h3 className={styles.footerTitle}>CLIX 커뮤니티 아카이브</h3>
           <p className={styles.footerText}>
-            중부대학교 CLIX는 졸업작품을 공유하고, <br/>동료들의 피드백으로 더 나은 결과물을 <br/>만들어가는 학생 중심 커뮤니티입니다. <br/>기수를 넘어 작품을 통해 연결되고<br/>배움의 폭을 넓혀보세요.
+            중부대학교 CLIX는 졸업작품을 공유하고 <br/>동료들의 피드백으로 더 나은 결과물을 <br/>만들어가는 학생 중심 커뮤니티입니다. <br/>기수를 넘어 작품을 통해 연결되고<br/>배움의 폭을 넓혀보세요.
           </p>
         </div>
 
