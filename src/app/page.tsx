@@ -62,7 +62,8 @@ interface Banner {
 
 export default function Home() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  //const [loading, setLoading] = useState(true)
+  const [loadingPosts, setLoadingPosts] = useState(true); // 게시물 로딩 전용 상태 추가
   const [posts, setPosts] = useState<Post[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [userDisplayName, setUserDisplayName] = useState<string | undefined>(
@@ -99,7 +100,7 @@ export default function Home() {
         setCurrentUser(null)
         setUserDisplayName(undefined)
       }
-      setLoading(false)
+      // setLoading(false)
     })
 
     return () => unsubscribe()
@@ -107,6 +108,11 @@ export default function Home() {
 
   // 게시물 불러오기
   const fetchPosts = async (isInitial: boolean = false) => {
+    if (isInitial) {
+        setLoadingPosts(true); // 게시물 로딩 시작
+    } else {
+        setLoadingMore(true);
+    }
     try {
       let q
       if (isInitial) {
@@ -205,7 +211,7 @@ export default function Home() {
 
   // 초기 게시물 로드
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
   }, [])
 
   // 수동으로 더 많은 게시물 로드
