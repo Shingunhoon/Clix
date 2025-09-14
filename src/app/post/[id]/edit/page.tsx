@@ -313,7 +313,7 @@ export default function EditPage() {
       updateData.referenceFileUrls = referenceFileUrls
 
       // 상세 이미지 업로드
-      let detailImageUrls = [...existingDetailImages]
+      const detailImageUrls = [...existingDetailImages]
       for (const file of detailFiles) {
         const imageRef = ref(storage, `detailImages/${Date.now()}_${file.name}`)
         await uploadBytes(imageRef, file)

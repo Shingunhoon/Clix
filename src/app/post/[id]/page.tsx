@@ -629,7 +629,7 @@ const confirmDelete = async () => {
 
           {post.youtubeVideoId && (
             <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>자료영상</h2>
+              <h2 className={styles.sectionTitle}>시연영상</h2>
               <div className={styles.youtubeContainer}>
                 <iframe
                   width="560"
@@ -647,14 +647,14 @@ const confirmDelete = async () => {
           {post.referenceFileUrls && post.referenceFileUrls.length > 0 && (
             <div className={styles.section}>
               <h2 className={styles.sectionTitle} style={{ color: '#000' }}>
-                보고서
+                참고자료
               </h2>
               <div className={styles.referenceFiles}>
                 {post.referenceFileUrls.map((fileUrl, index) => {
                   // URL에서 파일명 추출
                   const fileName =
                     fileUrl.split('/').pop()?.split('_').slice(1).join('_') ||
-                    `참고자료_${index + 1}.pdf`
+                    `${index + 1}번 파일.pdf`
                   return (
                     <div key={index} className={styles.referenceFile}>
                       <a

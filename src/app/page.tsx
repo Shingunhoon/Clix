@@ -205,7 +205,7 @@ export default function Home() {
 
   // 초기 게시물 로드
   useEffect(() => {
-    fetchPosts(true)
+    fetchPosts();
   }, [])
 
   // 수동으로 더 많은 게시물 로드
