@@ -216,18 +216,6 @@ export default function SearchPageClient() {
     <div className={styles.container}>
       <div className={styles.searchHeader}>
         <h1 className={styles.title}>검색 결과</h1>
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="프로젝트 검색..."
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>
-            검색
-          </button>
-        </form>
       </div>
 
       <div className={styles.resultsInfo}>
@@ -286,12 +274,12 @@ export default function SearchPageClient() {
                   {post.techStack && post.techStack.length > 0 && (
                     <div className={styles.techStackContainer}>
                       <div className={styles.techStackList}>
-                        {post.techStack.slice(0, 5).map((tech, index) => (
+                        {post.techStack.slice(0, 3).map((tech, index) => (
                           <span key={index} className={styles.techStackItem}>
                             #{tech}
                           </span>
                         ))}
-                        {post.techStack.length > 5 && (
+                        {post.techStack.length > 3 && (
                           <span className={styles.techStackMore}>+</span>
                         )}
                       </div>

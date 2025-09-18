@@ -179,6 +179,9 @@
   padding: 2.5rem;
 }
 
+/* ========================================================= */
+/* 카드 섹션 수정 */
+/* ========================================================= */
 .card {
   background-color: #ffffff;
   border-radius: 15px;
@@ -192,7 +195,7 @@
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
-  height: 480px;
+  min-height: 480px; /* 최소 높이 설정, 콘텐츠에 따라 늘어날 수 있도록 */
 }
 
 .card:hover {
@@ -202,7 +205,7 @@
 
 .imageContainer {
   width: 100%;
-  padding-bottom: 75%;
+  padding-bottom: 75%; /* 4:3 비율 유지 */
   position: relative;
   border-radius: 15px 15px 0 0;
   overflow: hidden;
@@ -221,19 +224,14 @@
   background-color: #ecf0f1;
 }
 
-
 .cardContent {
   padding: 15px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background-color: white;
-  flex: 1;
-  justify-content: space-between;
-}
-
-.cardTitle {
-  display: none;
+  flex: 1; /* 남은 공간을 유연하게 채우도록 */
+  justify-content: flex-start; /* 콘텐츠가 위에서부터 쌓이도록 */
 }
 
 .cardContent h3 {
@@ -245,9 +243,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2; /* 두 줄까지 표시 */
   -webkit-box-orient: vertical;
-  min-height: 2.8em;
+  min-height: 2.8em; /* 두 줄 높이 확보 */
   line-height: 1.4;
 }
 
@@ -258,6 +256,7 @@
   font-size: 15px;
   color: #7f8c8d;
   margin-bottom: 8px;
+  flex-grow: 1; /* 정보 부분이 가능한 공간을 차지하도록 */
 }
 
 .techStackContainer {
@@ -265,19 +264,23 @@
   flex-direction: column;
   gap: 5px;
   margin-top: 5px;
+  /* 기술 스택이 없거나 적어도 최소한의 공간을 차지하여 레이아웃 변동을 줄임 */
+  min-height: 20px; 
 }
 
 .techStackLabel {
   font-size: 14px;
   color: #5d6d7e;
   font-weight: 600;
+  margin-bottom: 2px; /* 라벨과 스택 아이템 사이 간격 */
 }
 
 .techStackList {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 3px;
+  margin-top: 0; /* techStackLabel에서 간격 조정했으므로 여기는 0 */
+  align-items: center;
 }
 
 .techStackItem {
@@ -304,7 +307,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: auto; /* 항상 카드 하단에 위치하도록 */
   padding-top: 10px;
   border-top: 1px solid #ecf0f1;
   font-size: 14px;
@@ -372,6 +375,10 @@
   width: 18px;
   height: 18px;
 }
+/* ========================================================= */
+/* 카드 섹션 수정 끝 */
+/* ========================================================= */
+
 
 .imagePlaceholder {
   width: 100%;
@@ -551,11 +558,13 @@
   }
 
   .card {
-    height: 450px;
+    min-height: 450px; /* 미디어 쿼리에서도 min-height로 변경 */
+    height: auto; /* 고정 높이 제거 */
   }
 
   .imageContainer {
     height: 240px;
+    padding-bottom: 0;
   }
 
   .loadMoreContainer {
@@ -603,7 +612,8 @@
   }
 
   .card {
-    height: 420px;
+    min-height: 420px; /* 미디어 쿼리에서도 min-height로 변경 */
+    height: auto; /* 고정 높이 제거 */
   }
 
   .imageContainer {

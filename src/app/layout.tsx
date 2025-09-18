@@ -18,6 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      
       <body className={inter.className}>
         <Header />
         <main>{children}</main>
