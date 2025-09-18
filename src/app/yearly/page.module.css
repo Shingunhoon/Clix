@@ -216,7 +216,7 @@
   gap: 5px;
   margin-top: 5px;
   /* 기술 스택이 없거나 적어도 최소한의 공간을 차지하여 레이아웃 변동을 줄임 */
-  min-height: 20px; 
+  min-height: 20px;
 }
 
 .techStackLabel {
@@ -430,9 +430,10 @@
   }
 }
 
+/* Updated metaHeader styles */
 .metaHeader {
   width: 100vw;
-  background: #fde1e4;
+  background: #fde1e4; /* Default background, can be overridden by yearMeta.color */
   padding: 3rem 1rem 2rem 1rem;
   border-radius: 0;
   text-align: center;
@@ -442,22 +443,66 @@
   right: 50%;
   margin-left: -50vw;
   margin-right: -50vw;
+  box-sizing: border-box; /* Ensure padding is included in width */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center horizontally */
 }
 
 .metaTitle {
   font-size: 3rem;
   font-weight: bold;
-  color: #7a2327;
-  margin-bottom: 1.5rem;
+  color: #7a2327; /* Default color, can be overridden by yearMeta.textColor */
+  margin-bottom: 2rem; /* More space below the main title */
   line-height: 1.2;
+  max-width: 1200px; /* Constrain width for readability */
+  width: 100%;
 }
 
-.metaInfo {
-  color: #7a2327;
-  font-size: 1.2rem;
-  font-weight: 400;
-  line-height: 2;
+.metaInfoCards {
+  display: flex;
+  justify-content: center; /* Center the cards horizontally */
+  gap: 20px; /* Space between cards */
+  max-width: 1200px; /* Constrain width of the card container */
+  width: 100%;
+  flex-wrap: wrap; /* Allow cards to wrap on smaller screens */
+  margin-top: 1rem; /* Space between title and cards */
 }
+
+.metaInfoCard {
+  background-color: rgba(255, 255, 255, 1); /* Slightly transparent white for cards */
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  flex: 1; /* Allow cards to grow and shrink */
+  min-width: 200px; /* Minimum width for each card */
+  max-width: 280px; /* Max width for each card */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metaInfoCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.metaInfoCardLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a4a4a; /* Darker grey for labels */
+  margin-bottom: 0.5rem;
+}
+
+.metaInfoCardValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50; /* Stronger color for names */
+  word-break: keep-all; /* Prevent names from breaking awkwardly */
+}
+
 
 @media (max-width: 1200px) {
   .leftSpace,
@@ -471,6 +516,18 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 28px;
     padding: 0 1rem;
+  }
+  .metaHeader {
+    padding-left: 1rem; /* Adjust padding for smaller screens */
+    padding-right: 1rem;
+  }
+  .metaInfoCards {
+    padding: 0 1rem; /* Add padding to card container on smaller screens */
+    gap: 15px; /* Slightly reduce gap */
+  }
+  .metaInfoCard {
+    min-width: unset; /* Remove min-width constraint */
+    max-width: 48%; /* Two cards per row */
   }
 }
 
@@ -509,6 +566,26 @@
   .views svg {
     width: 15px;
     height: 15px;
+  }
+  .metaTitle {
+    font-size: 2rem; /* Smaller title on mobile */
+    margin-bottom: 1.5rem;
+  }
+  .metaInfoCards {
+    flex-direction: column; /* Stack cards vertically on very small screens */
+    align-items: center; /* Center stacked cards */
+    gap: 10px; /* Reduce gap between stacked cards */
+  }
+  .metaInfoCard {
+    width: 90%; /* Make cards wider when stacked */
+    max-width: 350px; /* Max width for stacked cards */
+    padding: 1rem;
+  }
+  .metaInfoCardLabel {
+    font-size: 0.9rem;
+  }
+  .metaInfoCardValue {
+    font-size: 1rem;
   }
 }
 

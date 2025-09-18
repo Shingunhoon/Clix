@@ -354,7 +354,6 @@ export default function YearlyPageClient() {
 
     return (
     <div className={styles.container}>
-      {/* metaHeader now lives directly inside the main container but spans full width */}
       {yearMeta.title && (
         <div
           className={styles.metaHeader}
@@ -377,20 +376,51 @@ export default function YearlyPageClient() {
               yearMeta.title
             )}
           </h1>
-          <div
-            className={styles.metaInfo}
-            style={{ color: yearMeta.textColor || '#7a2327' }}
-          >
+          <div className={styles.metaInfoCards}>
             {yearMeta.headProfessor && (
-              <div>학과장: {yearMeta.headProfessor}</div>
+              <div
+                className={styles.metaInfoCard}
+                style={{ color: yearMeta.textColor || '#7a2327' }}
+              >
+                <div className={styles.metaInfoCardLabel}>학과장</div>
+                <div className={styles.metaInfoCardValue}>
+                  {yearMeta.headProfessor}
+                </div>
+              </div>
             )}
             {yearMeta.advisors && (
-              <div>졸업연구 지도교수: {yearMeta.advisors}</div>
+              <div
+                className={styles.metaInfoCard}
+                style={{ color: yearMeta.textColor || '#7a2327' }}
+              >
+                <div className={styles.metaInfoCardLabel}>졸업연구 지도교수</div>
+                <div className={styles.metaInfoCardValue}>
+                  {yearMeta.advisors}
+                </div>
+              </div>
             )}
             {yearMeta.committee && (
-              <div>졸업준비위원장: {yearMeta.committee}</div>
+              <div
+                className={styles.metaInfoCard}
+                style={{ color: yearMeta.textColor || '#7a2327' }}
+              >
+                <div className={styles.metaInfoCardLabel}>졸업준비위원장</div>
+                <div className={styles.metaInfoCardValue}>
+                  {yearMeta.committee}
+                </div>
+              </div>
             )}
-            {yearMeta.president && <div>학회장: {yearMeta.president}</div>}
+            {yearMeta.president && (
+              <div
+                className={styles.metaInfoCard}
+                style={{ color: yearMeta.textColor || '#7a2327' }}
+              >
+                <div className={styles.metaInfoCardLabel}>학회장</div>
+                <div className={styles.metaInfoCardValue}>
+                  {yearMeta.president}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
