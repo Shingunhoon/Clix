@@ -115,3 +115,12 @@
   color: #000;
   margin: 0;
 }
+.adminBadge {
+  margin-left: 8px;
+  background-color: #ffc107; /* 노란색 */
+  color: #333;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: bold;
+}
