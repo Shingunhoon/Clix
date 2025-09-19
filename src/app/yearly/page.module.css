@@ -86,40 +86,214 @@
   margin-bottom: 3rem;
   color: #000;
 }
+.noPostsMessage {
+  grid-column: 1 / -1; /* 그리드 전체 너비를 차지 */
+  text-align: center;
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  padding: 3rem 1rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin-top: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
 
-.photoAlbumSection {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
+.photoAlbumLinksSection {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  padding: 1.5rem 2rem;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.photoAlbumSectionTitle {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.photoAlbumScrollContainer {
+  overflow: hidden; /* Hide scrollbars, we'll control scrolling with animation */
+  margin-bottom: 1rem;
+}
+
+.photoAlbumScrollTrack {
+  display: flex;
+  white-space: nowrap; /* Keep items in a single line */
+  animation: scrollLeft 35s linear infinite; /* Default animation */
+  padding: 10px 0; /* Add some vertical padding for shadow/spacing */
+}
+
+.photoAlbumScrollTrack.reverse {
+  animation: scrollRight 35s linear infinite; /* Reverse animation */
+}
+
+/* New style for static (non-scrolling) track */
+.photoAlbumStaticTrack {
+  display: flex;
+  flex-wrap: wrap; /* Allow items to wrap into multiple lines if needed */
+  justify-content: center; /* Center items when not scrolling */
+  padding: 10px 0;
+  white-space: normal; /* Allow text wrapping within items if they were text-based */
+}
+
+
+/* Pause animation on hover */
+.photoAlbumScrollTrack:hover {
+  animation-play-state: paused;
+}
+
+
+.photoAlbumLinkItem {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: 200px; /* Fixed height for consistent image card size */
+  width: 250px; /* Fixed width for consistent image card size */
+  flex-shrink: 0; /* Prevent items from shrinking */
+  margin: 0 8px; /* Spacing between items */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.photoAlbumLinkItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #a0a0a0;
+}
+
+.photoAlbumImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.photoAlbumLinkItem:hover .photoAlbumImage {
+  transform: scale(1.05);
+}
+
+.photoAlbumLinkText {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Keyframe animations for scrolling */
+@keyframes scrollLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); } /* Scrolls a full copy of the track */
+}
+
+@keyframes scrollRight {
+  0% { transform: translateX(-100%); } /* Starts from the end of the copied track */
+  100% { transform: translateX(0); }
+}
+
+/* Modal styles (Keep as is, but ensure these are present) */
+.modalContent {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  padding: 0;
+  background: transparent;
+  border-radius: 8px;
   display: flex;
   justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.photoAlbumButton {
-  padding: 0.75rem 1.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
+.modalImage {
+  max-width: 90vw; /* Use vw for image to fit screen better */
+  max-height: 90vh; /* Use vh for image to fit screen better */
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
   border: none;
-  background: #f5f5f5;
-  color: #000000;
-  border-radius: 25px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
+  z-index: 1001;
+  transition: background-color 0.2s ease;
 }
 
-.photoAlbumButton:hover {
-  background: #e0e0e0;
-  color: #000000;
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
-.photoAlbumButton:active {
-  background: #d0d0d0;
-  color: #000000;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .photoAlbumLinkItem {
+    width: 200px; /* Adjust width for smaller screens */
+    height: 150px;
+  }
+  .photoAlbumScrollTrack {
+    animation-duration: 20s; /* Faster scroll on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .photoAlbumLinkItem {
+    width: 150px; /* Further adjust width for very small screens */
+    height: 120px;
+  }
+  .photoAlbumLinksSection {
+    padding: 1rem;
+  }
+  .photoAlbumSectionTitle {
+    font-size: 1.4rem;
+  }
+}
 .postsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(280px, 1fr));
