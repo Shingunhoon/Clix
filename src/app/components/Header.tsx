@@ -11,6 +11,9 @@ import {
   query,
   orderBy,
   getDocs,
+  onSnapshot,
+  where,
+  limit,
 } from 'firebase/firestore'
 import styles from './Header.module.css'
 
@@ -31,15 +34,19 @@ export default function Header() {
   const [userMenuTimer, setUserMenuTimer] = useState<NodeJS.Timeout | null>(
     null
   )
+  const [yearMenuTimer, setYearMenuTimer] = useState<NodeJS.Timeout | null>(
+    null
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
   const router = useRouter()
+  // 게시물 업로드 가능 여부 상태 추가
+  const [postUploadEnabled, setPostUploadEnabled] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       setUser(user)
       if (user?.email) {
-        // 사용자 정보 가져오기
         const userRef = doc(db, 'users', user.email)
         const userSnap = await getDoc(userRef)
         if (userSnap.exists()) {
@@ -50,18 +57,45 @@ export default function Header() {
       }
     })
 
-    // 연도 목록 가져오기
     const fetchYears = async () => {
       try {
-        const postsRef = collection(db, 'posts')
-        const q = query(postsRef, orderBy('createdAt', 'desc'))
-        const querySnapshot = await getDocs(q)
+        // 가장 오래된 게시물의 연도 찾기
+        const oldestSnap = await getDocs(
+          query(collection(db, 'posts'), orderBy('createdAt', 'asc'), limit(1))
+        )
 
+        if (oldestSnap.empty) {
+          setYears([])
+          return
+        }
+
+        const oldestDoc = oldestSnap.docs[0]
+        const oldestDate = oldestDoc.data().createdAt?.toDate?.() || new Date()
+        const oldestYear = oldestDate.getFullYear()
+
+        const currentYear = new Date().getFullYear()
         const yearSet = new Set<string>()
-        querySnapshot.docs.forEach((doc) => {
-          const year = doc.data().createdAt.toDate().getFullYear().toString()
-          yearSet.add(year)
-        })
+
+        // oldestYear..currentYear 범위 내에서 해당 연도에 게시물이 하나라도 있으면 추가
+        for (let year = currentYear; year >= oldestYear; year--) {
+          try {
+            const startDate = new Date(year, 0, 1)
+            const endDate = new Date(year + 1, 0, 1)
+
+            const q = query(
+              collection(db, 'posts'),
+              where('createdAt', '>=', startDate),
+              where('createdAt', '<', endDate),
+              limit(1)
+            )
+            const snapshot = await getDocs(q)
+            if (!snapshot.empty) {
+              yearSet.add(year.toString())
+            }
+          } catch (error) {
+            console.error(`${year}년 게시물 조회 실패:`, error)
+          }
+        }
 
         setYears(Array.from(yearSet).sort((a, b) => Number(b) - Number(a)))
       } catch (error) {
@@ -69,9 +103,33 @@ export default function Header() {
       }
     }
 
+    // `settings/config` 문서의 변경 사항을 실시간으로 구독
+    const settingsDocRef = doc(db, 'settings', 'config')
+    const unsubscribeSettings = onSnapshot(
+      settingsDocRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setPostUploadEnabled(docSnap.data().postUploadEnabled || false)
+        } else {
+          // 문서가 없으면 기본적으로 비활성화 또는 처리
+          setPostUploadEnabled(false)
+        }
+      },
+      (error) => {
+        console.error('Error fetching settings: ', error)
+        // 에러 발생 시 기본적으로 비활성화
+        setPostUploadEnabled(false)
+      }
+    )
+
     fetchYears()
-    return () => unsubscribe()
-  }, [])
+    return () => {
+      unsubscribeAuth()
+      unsubscribeSettings() // 구독 해제
+      if (userMenuTimer) clearTimeout(userMenuTimer)
+      if (yearMenuTimer) clearTimeout(yearMenuTimer)
+    }
+  }, [userMenuTimer, yearMenuTimer])
 
   const handleLogout = async () => {
     try {
@@ -98,7 +156,7 @@ export default function Header() {
   const handleUserMenuLeave = () => {
     const timer = setTimeout(() => {
       setIsUserMenuOpen(false)
-    }, 60000) // 1초 지연
+    }, 300) // 0.3초 지연
     setUserMenuTimer(timer)
   }
 
@@ -120,13 +178,20 @@ export default function Header() {
     }
   }
 
-  useEffect(() => {
-    return () => {
-      if (userMenuTimer) {
-        clearTimeout(userMenuTimer)
-      }
+  const handleYearMenuEnter = () => {
+    if (yearMenuTimer) {
+      clearTimeout(yearMenuTimer)
+      setYearMenuTimer(null)
     }
-  }, [userMenuTimer])
+    setIsYearMenuOpen(true)
+  }
+
+  const handleYearMenuLeave = () => {
+    const timer = setTimeout(() => {
+      setIsYearMenuOpen(false)
+    }, 300) // 0.3초 지연
+    setYearMenuTimer(timer)
+  }
 
   return (
     <header className={styles.header}>
@@ -134,44 +199,6 @@ export default function Header() {
         <Link href="/" className={styles.logo}>
           Clix
         </Link>
-
-        <nav className={styles.nav}>
-          <Link
-            href="/hall-of-fame"
-            className={`${styles.navItem} ${
-              pathname === '/hall-of-fame' ? styles.active : ''
-            }`}
-          >
-            명예전당
-          </Link>
-          <div
-            className={styles.yearNavItem}
-            onMouseEnter={() => setIsYearMenuOpen(true)}
-            onMouseLeave={() => setIsYearMenuOpen(false)}
-          >
-            <span
-              className={`${styles.navItem} ${
-                pathname === '/yearly' ? styles.active : ''
-              }`}
-            >
-              연도별
-            </span>
-            {isYearMenuOpen && (
-              <div className={styles.yearDropdown}>
-                {years.map((year) => (
-                  <button
-                    key={year}
-                    className={styles.yearOption}
-                    onClick={() => handleYearClick(year)}
-                  >
-                    {year}년
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
         <div className={styles.searchSection}>
           <input
             type="text"
@@ -185,7 +212,54 @@ export default function Header() {
             검색
           </button>
         </div>
-
+        <nav className={styles.nav}>
+          <div
+            className={styles.yearNavItem}
+            onMouseEnter={handleYearMenuEnter}
+            onMouseLeave={handleYearMenuLeave}
+          >
+            <span
+              className={`${styles.navItem} ${
+                pathname === '/yearly' ? styles.active : ''
+              }`}
+            >
+              연도별
+            </span>
+            {isYearMenuOpen && (
+              <div
+                className={styles.yearDropdown}
+                onMouseEnter={handleYearMenuEnter}
+                onMouseLeave={handleYearMenuLeave}
+              >
+                {years.map((year) => (
+                  <button
+                    key={year}
+                    className={styles.yearOption}
+                    onClick={() => handleYearClick(year)}
+                  >
+                    {year}년
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <Link
+            href="/hall-of-fame"
+            className={`${styles.navItem} ${
+              pathname === '/hall-of-fame' ? styles.active : ''
+            }`}
+          >
+            명예의 전당
+          </Link>
+          <Link
+            href="/team"
+            className={`${styles.navItem} ${
+              pathname === '/team' ? styles.active : ''
+            }`}
+          >
+            팀원 소개
+          </Link>
+        </nav>
         <div className={styles.authSection}>
           {user ? (
             <div
@@ -193,11 +267,7 @@ export default function Header() {
               onMouseEnter={handleUserMenuEnter}
               onMouseLeave={handleUserMenuLeave}
             >
-              <button
-                className={styles.userNameButton}
-                onMouseEnter={handleUserMenuEnter}
-                onMouseLeave={handleUserMenuLeave}
-              >
+              <button className={styles.userNameButton}>
                 {userName}
                 {(userRole === 'admin' || userRole === 'subAdmin') && (
                   <span className={styles.adminBadge}>관리자</span>
@@ -212,9 +282,12 @@ export default function Header() {
                   <Link href="/mypage" className={styles.userMenuItem}>
                     마이페이지
                   </Link>
-                  <Link href="/upload" className={styles.userMenuItem}>
-                    프로젝트 업로드
-                  </Link>
+                  {/* postUploadEnabled 값에 따라 조건부 렌더링 */}
+                  {postUploadEnabled && (
+                    <Link href="/upload" className={styles.userMenuItem}>
+                      프로젝트 업로드
+                    </Link>
+                  )}
                   {(userRole === 'admin' || userRole === 'subAdmin') && (
                     <Link href="/admin" className={styles.userMenuItem}>
                       관리자 페이지

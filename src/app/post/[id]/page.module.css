@@ -712,3 +712,170 @@
   padding-top: 30px;
   border-top: 1px solid #eee;
 }
+/* page.module.css 에 추가 */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 다른 요소들 위에 표시 */
+}
+
+.deleteConfirmModal {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  animation: fadeInScale 0.3s ease-out forwards;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modalTitle {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.modalMessage {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.checkboxContainer {
+  display: block; /* 블록 요소로 만들어 중앙 정렬하기 용이하게 함 */
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 25px;
+  cursor: pointer;
+  font-size: 1em;
+  color: #333;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  text-align: left; /* 텍스트 정렬 */
+  width: fit-content; /* 내용에 맞춰 너비 조절 */
+  margin-left: auto; /* 중앙 정렬 */
+  margin-right: auto; /* 중앙 정렬 */
+}
+
+.modalCheckbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 22px;
+  width: 22px;
+  background-color: #eee;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.checkboxContainer:hover .modalCheckbox ~ .checkmark {
+  background-color: #ccc;
+}
+
+.checkboxContainer .modalCheckbox:checked ~ .checkmark {
+  background-color: #4CAF50; /* 체크될 때 색상 */
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkboxContainer .modalCheckbox:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkboxContainer .checkmark:after {
+  left: 8px;
+  top: 4px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.checkboxLabel {
+  vertical-align: middle;
+  line-height: 22px; /* 체크박스와 같은 높이로 정렬 */
+  margin-left: 5px; /* 체크박스와 라벨 사이 간격 */
+}
+
+.modalButtons {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modalCancelButton,
+.modalDeleteButton {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
+
+.modalCancelButton {
+  background-color: #e0e0e0;
+  color: #444;
+}
+
+.modalCancelButton:hover {
+  background-color: #d0d0d0;
+  transform: translateY(-2px);
+}
+
+.modalDeleteButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.modalDeleteButton:hover:not(:disabled) {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.modalDeleteButtonDisabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

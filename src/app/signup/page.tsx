@@ -83,7 +83,7 @@ export default function Signup() {
     }
 
     const actionCodeSettings = {
-      url: 'http://localhost:3000/verify?email=' + encodeURIComponent(email),
+      url: 'http://jbuis.kr/verify?email=' + encodeURIComponent(email),
       handleCodeInApp: true,
     }
 
@@ -94,6 +94,7 @@ export default function Signup() {
         email,
         isVerified: false,
         requestedAt: Timestamp.now(),
+        expireAt: Timestamp.fromDate(new Date(Date.now() + 60 * 60 * 1000)), // 1시간 후 삭제
       })
 
       localStorage.setItem('emailForSignIn', email)
